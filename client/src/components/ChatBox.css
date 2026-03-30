@@ -1,0 +1,125 @@
+.chat-sidebar {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  background-color: #0c1218;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.messages-list {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message-item {
+  display: flex;
+  width: 100%;
+}
+
+.message-item.me {
+  justify-content: flex-end;
+}
+
+.message-item.stranger {
+  justify-content: flex-start;
+}
+
+.message-item.system {
+  justify-content: center;
+}
+
+.msg-bubble {
+  max-width: 85%;
+  padding: 10px 15px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-break: break-word;
+  font-family: 'Syne', sans-serif;
+}
+
+.me .msg-bubble {
+  background-color: var(--neon-green);
+  color: #000;
+  font-weight: 500;
+}
+
+.stranger .msg-bubble {
+  background-color: #1a2530;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.system-msg {
+  color: var(--text-gray);
+  font-size: 0.8rem;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+}
+
+.chat-input-area {
+  padding: 15px;
+  background-color: #080c10;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chat-input-area input {
+  flex: 1;
+  background: #0c1218;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 12px 15px;
+  border-radius: 0;
+  outline: none;
+  font-family: 'Syne', sans-serif;
+}
+
+.chat-input-area input:focus {
+  border-color: var(--neon-green);
+}
+
+.chat-input-area button {
+  background: var(--neon-green);
+  color: #000;
+  border: none;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  font-weight: 700;
+  border-radius: 0;
+  transition: transform 0.2s;
+}
+
+.chat-input-area button:hover {
+  transform: scale(1.05);
+}
+
+.chat-sidebar.disabled .messages-list {
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .chat-sidebar {
+    position: fixed;
+    bottom: 80px;
+    right: 0;
+    width: 100%;
+    height: 300px;
+    z-index: 20;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Sidebar toggle will be handled by a button in Controls.jsx */
+  .chat-sidebar.mobile-open {
+    transform: translateY(0);
+  }
+}

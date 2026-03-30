@@ -1,0 +1,314 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { socket } from "../socket";
+import VideoGrid from "../components/VideoGrid";
+import ChatBox from "../components/ChatBox";
+import Controls from "../components/Controls";
+import ReportModal from "../components/ReportModal";
+import "./Chat.css";
+
+const Chat = () => {
+  const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
+  const [messages, setMessages] = useState([]);
+  const [user, setUser] = useState(null);
+  const [localCountryCode, setLocalCountryCode] = useState(null);
+  const [remoteCountryCode, setRemoteCountryCode] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [roomId, setRoomId] = useState(null);
+  const roomIdRef = useRef(null);
+
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const navigate = useNavigate();
+
+  const iceServers = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+    ],
+  };
+
+  useEffect(() => {
+    socket.connect();
+    const u = localStorage.getItem("auth_user");
+    if (u) {
+      try { setUser(JSON.parse(u)); } catch {}
+    } else {
+      const t = localStorage.getItem("auth_token");
+      if (t) {
+        fetch("/api/auth/me", { headers: { Authorization: `Bearer ${t}` } })
+          .then(r => r.json().catch(() => ({}))).then(d => { if (d?.user) { localStorage.setItem("auth_user", JSON.stringify(d.user)); setUser(d.user); } });
+      }
+    }
+    fetch("/api/geo/me")
+      .then((r) => r.json().catch(() => ({})))
+      .then((d) => {
+        if (d?.countryCode) setLocalCountryCode(String(d.countryCode).toUpperCase());
+      })
+      .catch(() => {});
+
+    const startChat = async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert("O teu navegador não suporta acesso à câmara.");
+          navigate("/");
+          return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        localStreamRef.current = stream;
+
+        // Ensure the video element is ready
+        setTimeout(() => {
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        }, 100);
+
+        const filters = JSON.parse(
+          sessionStorage.getItem("chat_filters") ||
+            '{"gender":"Any", "country":"Any"}',
+        );
+        socket.emit("join_queue", filters);
+      } catch (err) {
+        console.error("Media error:", err);
+        if (err.name === "NotAllowedError") {
+          alert(
+            "Permissão de câmara/microfone negada. Ativa nas permissões do browser e recarrega a página.",
+          );
+        } else if (err.name === "NotFoundError") {
+          alert("Nenhuma câmara encontrada no dispositivo.");
+        } else if (err.name === "NotReadableError") {
+          alert(
+            "A câmara não conseguiu iniciar (normalmente está a ser usada por outra app/tab). Fecha Zoom/Teams/Meet, outras tabs com câmara, e tenta novamente.",
+          );
+        } else {
+          alert("Erro ao aceder à câmara: " + err.message);
+        }
+        navigate("/");
+      }
+    };
+
+    startChat();
+
+    socket.on("waiting", () => {
+      setStatus("searching");
+    });
+
+    socket.on("matched", async (data) => {
+      const { role, roomId: matchedRoomId } = data;
+      setRoomId(matchedRoomId);
+      roomIdRef.current = matchedRoomId;
+      setStatus("connected");
+      setMessages([{ type: "system", text: "✓ Stranger connected" }]);
+      if (data?.selfGeo?.countryCode) setLocalCountryCode(String(data.selfGeo.countryCode).toUpperCase());
+      if (data?.partnerGeo?.countryCode) setRemoteCountryCode(String(data.partnerGeo.countryCode).toUpperCase());
+
+      initPeerConnection(role, matchedRoomId);
+    });
+
+    socket.on("offer", async (data) => {
+      if (!peerConnectionRef.current) return;
+      await peerConnectionRef.current.setRemoteDescription(
+        new RTCSessionDescription(data.sdp),
+      );
+      const answer = await peerConnectionRef.current.createAnswer();
+      await peerConnectionRef.current.setLocalDescription(answer);
+      socket.emit("answer", { roomId: roomIdRef.current, sdp: answer });
+    });
+
+    socket.on("answer", async (data) => {
+      if (!peerConnectionRef.current) return;
+      await peerConnectionRef.current.setRemoteDescription(
+        new RTCSessionDescription(data.sdp),
+      );
+    });
+
+    socket.on("ice_candidate", async (data) => {
+      if (!peerConnectionRef.current) return;
+      try {
+        await peerConnectionRef.current.addIceCandidate(
+          new RTCIceCandidate(data.candidate),
+        );
+      } catch (e) {
+        console.error("Error adding ice candidate", e);
+      }
+    });
+
+    socket.on("message", (data) => {
+      setMessages((prev) => [...prev, { type: "stranger", text: data.text }]);
+    });
+
+    socket.on("stranger_disconnected", () => {
+      setStatus("disconnected");
+      setMessages((prev) => [
+        ...prev,
+        { type: "system", text: "Stranger left 👋" },
+      ]);
+      setRemoteCountryCode(null);
+      cleanupPeerConnection();
+    });
+
+    return () => {
+      cleanupPeerConnection();
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      socket.disconnect();
+    };
+  }, []);
+
+  const initPeerConnection = async (role, rId) => {
+    cleanupPeerConnection();
+
+    const pc = new RTCPeerConnection(iceServers);
+    peerConnectionRef.current = pc;
+
+    localStreamRef.current.getTracks().forEach((track) => {
+      pc.addTrack(track, localStreamRef.current);
+    });
+
+    pc.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("ice_candidate", {
+          roomId: rId,
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    if (role === "caller") {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit("offer", { roomId: rId, sdp: offer });
+    }
+  };
+
+  const cleanupPeerConnection = () => {
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+  };
+
+  const handleNext = () => {
+    socket.emit("next");
+    cleanupPeerConnection();
+    setStatus("searching");
+    setMessages([]);
+    setRoomId(null);
+    roomIdRef.current = null;
+    setRemoteCountryCode(null);
+    const filters = JSON.parse(
+      sessionStorage.getItem("chat_filters") ||
+        '{"gender":"Any", "country":"Any"}',
+    );
+    socket.emit("join_queue", filters);
+  };
+
+  const handleStop = () => {
+    navigate("/");
+  };
+
+  const sendMessage = (text) => {
+    if (status === "connected" && roomIdRef.current) {
+      socket.emit("message", { roomId: roomIdRef.current, text });
+      setMessages((prev) => [...prev, { type: "me", text }]);
+    }
+  };
+
+  const toggleMute = () => {
+    const audioTrack = localStreamRef.current.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMuted(!audioTrack.enabled);
+    }
+  };
+
+  const toggleVideo = () => {
+    const videoTrack = localStreamRef.current.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoOff(!videoTrack.enabled);
+    }
+  };
+
+  return (
+    <div className="chat-page">
+      <header className="chat-header">
+        <div className="logo small">
+          <span className="logo-ba">BA</span>
+          <span className="logo-fly">FLY</span>
+        </div>
+        <div className={`status-chip ${status}`}>
+          {status === "searching" && "⏳ A procurar..."}
+          {status === "connected" && "✓ Conectado"}
+          {status === "disconnected" && "○ Desconectado"}
+        </div>
+        <div style={{marginLeft:'auto'}}>
+          {user ? (
+            <>
+              <span style={{marginRight:10}}>{user.displayName || user.username}</span>
+              <button
+                onClick={() => { localStorage.removeItem("auth_token"); localStorage.removeItem("auth_user"); setUser(null); }}
+                className="ctrl-btn stop"
+              >
+                Sair
+              </button>
+            </>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="chat-content">
+        <VideoGrid
+          localVideoRef={localVideoRef}
+          remoteVideoRef={remoteVideoRef}
+          status={status}
+          localCountryCode={localCountryCode}
+          remoteCountryCode={remoteCountryCode}
+        />
+        <ChatBox
+          messages={messages}
+          onSendMessage={sendMessage}
+          disabled={status !== "connected"}
+        />
+      </div>
+
+      <Controls
+        onNext={handleNext}
+        onStop={handleStop}
+        onMute={toggleMute}
+        onVideoOff={toggleVideo}
+        onReport={() => setShowReportModal(true)}
+        isMuted={isMuted}
+        isVideoOff={isVideoOff}
+      />
+
+      {showReportModal && (
+        <ReportModal
+          onClose={() => setShowReportModal(false)}
+          reportedId={roomId} // Simplified
+        />
+      )}
+    </div>
+  );
+};
+
+export default Chat;
