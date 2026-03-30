@@ -1,0 +1,251 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const db = require('./db');
+const checkBan = require('./middleware/checkBan');
+require('dotenv').config();
+
+const authRoutes = require('./routes/auth');
+const reportRoutes = require('./routes/reports');
+const statsRoutes = require('./routes/stats');
+const initDB = require('./init_db');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+// Initialize DB tables
+initDB();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/stats', statsRoutes);
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+const geoCache = new Map();
+
+const normalizeIp = (ip) => {
+  if (!ip) return null;
+  const s = String(ip).trim();
+  if (s.startsWith('::ffff:')) return s.slice(7);
+  if (s === '::1') return '127.0.0.1';
+  return s;
+};
+
+const getIpFromHeaders = (headers) => {
+  const xff = headers['x-forwarded-for'];
+  if (xff) {
+    const first = String(xff).split(',')[0].trim();
+    return normalizeIp(first);
+  }
+  return null;
+};
+
+const getIpFromRequest = (req) => {
+  const fromHeader = getIpFromHeaders(req.headers || {});
+  return fromHeader || normalizeIp(req.socket?.remoteAddress);
+};
+
+const isPrivateIp = (ip) => {
+  const s = normalizeIp(ip);
+  if (!s) return true;
+  if (s === '127.0.0.1') return true;
+  if (s.startsWith('10.')) return true;
+  if (s.startsWith('192.168.')) return true;
+  const m = s.match(/^172\.(\d+)\./);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 16 && n <= 31) return true;
+  }
+  return false;
+};
+
+const lookupGeoByIp = async (ip) => {
+  const normalized = normalizeIp(ip);
+  if (!normalized || isPrivateIp(normalized)) return null;
+  const cached = geoCache.get(normalized);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const url = `https://ipwho.is/${encodeURIComponent(normalized)}?fields=success,country,country_code`;
+  const res = await fetch(url);
+  const data = await res.json().catch(() => ({}));
+  const value = data && data.success && data.country_code
+    ? { countryCode: String(data.country_code).toUpperCase(), countryName: data.country ? String(data.country) : null }
+    : null;
+
+  geoCache.set(normalized, { value, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
+  return value;
+};
+
+app.get('/api/geo/me', async (req, res) => {
+  try {
+    const ip = getIpFromRequest(req);
+    const geo = await lookupGeoByIp(ip);
+    return res.json({ ip, ...geo });
+  } catch (e) {
+    return res.json({ ip: null, countryCode: null, countryName: null });
+  }
+});
+
+// Queues for matchmaking
+let queue = []; // { socket, gender, country, joinedAt }
+
+// Stats tracking
+let onlineCount = 0;
+
+io.on('connection', async (socket) => {
+  onlineCount++;
+  io.emit('online_count', onlineCount);
+  try {
+    const ip = getIpFromHeaders(socket.handshake?.headers || {}) || normalizeIp(socket.handshake?.address);
+    const geo = await lookupGeoByIp(ip);
+    socket.data.geo = geo || null;
+  } catch (e) {
+    socket.data.geo = null;
+  }
+  
+  // Track online status in DB
+  try {
+    await db.query('INSERT INTO online_now (socket_id) VALUES ($1)', [socket.id]);
+  } catch (e) {
+    console.error("DB Online status error", e);
+  }
+
+  socket.on('join_queue', async (data) => {
+    // Check if banned
+    const isBanned = await checkBan(socket);
+    if (isBanned) return;
+
+    const { gender, country } = data;
+    const newUser = {
+      socket,
+      gender,
+      country,
+      geo: socket.data.geo || null,
+      joinedAt: Date.now(),
+      matched: false
+    };
+
+    // Matchmaking logic
+    findMatch(newUser);
+  });
+
+  socket.on('offer', (data) => {
+    const { roomId, sdp } = data;
+    socket.to(roomId).emit('offer', { sdp });
+  });
+
+  socket.on('answer', (data) => {
+    const { roomId, sdp } = data;
+    socket.to(roomId).emit('answer', { sdp });
+  });
+
+  socket.on('ice_candidate', (data) => {
+    const { roomId, candidate } = data;
+    socket.to(roomId).emit('ice_candidate', { candidate });
+  });
+
+  socket.on('message', (data) => {
+    const { roomId, text } = data;
+    // Broadcast to room
+    socket.to(roomId).emit('message', { text });
+    
+    // Log to DB (optional based on requirements, but user asked for INSERT INTO messages)
+    db.query('INSERT INTO messages (room_id, text, sender_socket) VALUES ($1, $2, $3)', [roomId, text, socket.id]).catch(console.error);
+  });
+
+  socket.on('next', () => {
+    handleDisconnectFromRoom(socket);
+    // User wants to find another match
+    // Client should emit join_queue again after next
+  });
+
+  socket.on('disconnect', async () => {
+    onlineCount--;
+    io.emit('online_count', onlineCount);
+    handleDisconnectFromRoom(socket);
+    
+    // Remove from DB online tracking
+    try {
+      await db.query('DELETE FROM online_now WHERE socket_id = $1', [socket.id]);
+    } catch (e) {
+      console.error("DB Online removal error", e);
+    }
+    
+    // Remove from queue if present
+    queue = queue.filter(u => u.socket.id !== socket.id);
+  });
+
+  function handleDisconnectFromRoom(socket) {
+    const rooms = Array.from(socket.rooms);
+    rooms.forEach(room => {
+      if (room !== socket.id) {
+        socket.to(room).emit('stranger_disconnected');
+        socket.leave(room);
+        
+        // Update session in DB
+        db.query('UPDATE sessions SET ended_at = NOW(), end_reason = $1 WHERE room_id = $2 AND ended_at IS NULL', ['disconnected', room]).catch(console.error);
+      }
+    });
+  }
+
+  function findMatch(user) {
+    const now = Date.now();
+    
+    // Look for a match in the queue
+    const matchIndex = queue.findIndex(other => {
+      if (other.socket.id === user.socket.id) return false;
+      
+      const timeInQueue = now - other.joinedAt;
+      const isFlexible = timeInQueue > 10000; // 10s flex
+
+      if (isFlexible) return true; // Match anything if they've been waiting > 10s
+
+      // Match based on gender/country if specified
+      const genderMatch = (user.gender === 'Any' || other.gender === 'Any' || user.gender === other.gender);
+      const countryMatch = (user.country === 'Any' || other.country === 'Any' || user.country === other.country);
+      
+      return genderMatch && countryMatch;
+    });
+
+    if (matchIndex !== -1) {
+      const otherUser = queue.splice(matchIndex, 1)[0];
+      const roomId = `room_${user.socket.id}_${otherUser.socket.id}`;
+      
+      user.socket.join(roomId);
+      otherUser.socket.join(roomId);
+
+      user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null });
+      otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
+
+      // Log session to DB
+      db.query('INSERT INTO sessions (room_id, user1_id, user2_id, started_at) VALUES ($1, $2, $3, NOW())', [roomId, user.socket.id, otherUser.socket.id]).catch(console.error);
+    } else {
+      queue.push(user);
+      user.socket.emit('waiting');
+    }
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
