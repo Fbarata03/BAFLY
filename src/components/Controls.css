@@ -1,0 +1,85 @@
+.controls-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #0c1218;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 15px;
+  z-index: 30;
+}
+
+.ctrl-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 10px 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.2s;
+}
+
+.ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: white;
+}
+
+.next-btn {
+  background-color: var(--neon-blue);
+  border-color: var(--neon-blue);
+  color: white;
+  padding: 12px 40px;
+  font-size: 1rem;
+}
+
+.next-btn:hover {
+  background-color: #0099ee;
+  border-color: #0099ee;
+  transform: scale(1.05);
+}
+
+.report {
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.2);
+}
+
+.report:hover {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff4444;
+}
+
+.stop {
+  color: var(--text-gray);
+}
+
+.stop:hover {
+  color: white;
+  border-color: white;
+}
+
+.ctrl-btn.mute.active, .ctrl-btn.camera.active {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+@media (max-width: 768px) {
+  .controls-bar {
+    padding: 10px;
+    gap: 8px;
+    justify-content: space-around;
+  }
+  
+  .ctrl-btn {
+    padding: 8px 12px;
+    font-size: 0.7rem;
+  }
+  
+  .next-btn {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+  }
+}
