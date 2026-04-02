@@ -105,10 +105,20 @@ app.get('/api/health/db/config', (req, res) => {
 });
 
 const buildTurnIceServers = () => {
-  const secret = process.env.TURN_SHARED_SECRET || 'openrelayprojectsecret';
-  const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-  const username = `${expiresAt}:bafly`;
-  const credential = crypto.createHmac('sha1', secret).update(username).digest('base64');
+  const useHmac = String(process.env.TURN_USE_HMAC || '').toLowerCase() === 'true';
+  let username;
+  let credential;
+
+  if (useHmac) {
+    const secret = process.env.TURN_SHARED_SECRET || 'openrelayprojectsecret';
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+    const identity = process.env.TURN_HMAC_IDENTITY || 'bafly';
+    username = `${expiresAt}:${identity}`;
+    credential = crypto.createHmac('sha1', secret).update(username).digest('base64');
+  } else {
+    username = process.env.TURN_USERNAME || 'openrelayproject';
+    credential = process.env.TURN_CREDENTIAL || 'openrelayprojectsecret';
+  }
 
   return [
     { urls: 'turn:staticauth.openrelay.metered.ca:80', username, credential },
