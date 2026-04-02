@@ -169,7 +169,10 @@ const Chat = () => {
       return;
     }
 
-    const pc = new RTCPeerConnection(peerConfigRef.current);
+    const pc = new RTCPeerConnection({
+      ...(peerConfigRef.current || ICE_SERVERS),
+      iceTransportPolicy: window.location.hostname === "localhost" ? "all" : "relay",
+    });
     peerConnectionRef.current = pc;
 
     localStreamRef.current.getTracks().forEach((track) => {
