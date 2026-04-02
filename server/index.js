@@ -181,6 +181,27 @@ let queue = []; // { socket, gender, country, joinedAt }
 // Stats tracking
 let onlineCount = 0;
 
+app.get('/api/health/matchmaking', (req, res) => {
+  const now = Date.now();
+  const items = queue.map((u) => ({
+    gender: u.gender,
+    country: u.country,
+    waitMs: now - (u.joinedAt || now)
+  }));
+
+  const byCountry = items.reduce((acc, it) => {
+    const k = it.country || 'Any';
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+
+  return res.json({
+    onlineCount,
+    queueSize: items.length,
+    byCountry
+  });
+});
+
 io.on('connection', async (socket) => {
   onlineCount++;
   io.emit('online_count', onlineCount);

@@ -4,6 +4,8 @@ import { socket } from '../socket';
 import OnlineBadge from '../components/OnlineBadge';
 import './Landing.css';
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 const DEFAULT_COUNTRY_OPTIONS = [
   { value: 'Any', label: 'Qualquer', flag: null },
   { value: 'PT', label: 'Portugal', flag: 'PT' },
@@ -47,7 +49,7 @@ const Landing = () => {
         setSimple(false); // If user exists, show full landing
       } catch {}
     } else if (token) {
-      fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json().catch(() => ({})))
         .then(d => { 
           if (d?.user) { 
@@ -84,7 +86,7 @@ const Landing = () => {
   }, []);
 
   useEffect(() => {
-    fetch('/api/geo/me')
+    fetch(`${API_URL}/api/geo/me`)
       .then((r) => r.json().catch(() => ({})))
       .then((d) => {
         const code = d?.countryCode ? String(d.countryCode).toUpperCase() : null;
