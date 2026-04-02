@@ -146,13 +146,6 @@ const Landing = () => {
             <button className="btn primary" onClick={() => setSimple(false)}>
               Começar Agora
             </button>
-            <button className="btn outline" onClick={() => navigate('/auth?mode=register')}>
-              Criar Conta Grátis
-            </button>
-          </div>
-          
-          <div className="auth-footer">
-            Já tens uma conta? <span className="login-link" onClick={() => navigate('/auth?mode=login')}>Entrar</span>
           </div>
 
           <div className="age-note">🔞 APENAS PARA MAIORES DE 18 ANOS</div>
@@ -185,7 +178,7 @@ const Landing = () => {
             </button>
           </div>
         ) : (
-          <div className="auth-link" onClick={() => navigate('/auth')}>Entrar / Registar</div>
+          <div />
         )}
       </header>
 

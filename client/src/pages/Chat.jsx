@@ -143,6 +143,13 @@ const Chat = () => {
 
   // Socket and Camera Initialization
   useEffect(() => {
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyOverscroll = document.body.style.overscrollBehavior;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+
     socket.connect();
     
     // User info
@@ -309,6 +316,10 @@ const Chat = () => {
       socket.off("message");
       socket.off("stranger_disconnected");
       socket.disconnect();
+
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.overscrollBehavior = prevBodyOverscroll;
     };
   }, [navigate, initPeerConnection, cleanupPeerConnection]);
 

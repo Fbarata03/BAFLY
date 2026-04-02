@@ -490,6 +490,9 @@
   .landing-page {
     padding: 16px;
     justify-content: flex-start;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .landing-header {
@@ -506,12 +509,12 @@
   }
 
   .landing-main {
-    padding-top: 92px;
+    padding-top: 76px;
     gap: 24px;
   }
 
   .tagline {
-    font-size: clamp(1.7rem, 8vw, 2.4rem);
+    font-size: clamp(1.5rem, 7vw, 2.1rem);
     line-height: 1.05;
   }
   
