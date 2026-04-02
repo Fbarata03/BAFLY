@@ -5,6 +5,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const db = require('./db');
 const checkBan = require('./middleware/checkBan');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -101,6 +102,29 @@ app.get('/api/health/db/config', (req, res) => {
     ...getDbConfigInfo(),
     sslModeEnv: process.env.DB_SSL_MODE || null
   });
+});
+
+const buildTurnIceServers = () => {
+  const secret = process.env.TURN_SHARED_SECRET || 'openrelayprojectsecret';
+  const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+  const username = `${expiresAt}:bafly`;
+  const credential = crypto.createHmac('sha1', secret).update(username).digest('base64');
+
+  return [
+    { urls: 'turn:staticauth.openrelay.metered.ca:80', username, credential },
+    { urls: 'turn:staticauth.openrelay.metered.ca:443', username, credential },
+    { urls: 'turn:staticauth.openrelay.metered.ca:443?transport=tcp', username, credential },
+    { urls: 'turns:staticauth.openrelay.metered.ca:443?transport=tcp', username, credential }
+  ];
+};
+
+app.get('/api/webrtc/ice', (req, res) => {
+  const iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    ...buildTurnIceServers()
+  ];
+  return res.json({ iceServers });
 });
 
 // Rate Limiting

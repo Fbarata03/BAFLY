@@ -19,6 +19,7 @@ const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === "l
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
   const [onlineCount, setOnlineCount] = useState(0);
+  const [peerConfig, setPeerConfig] = useState(ICE_SERVERS);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
   const [localCountryCode, setLocalCountryCode] = useState(null);
@@ -99,7 +100,7 @@ const Chat = () => {
       return;
     }
 
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+    const pc = new RTCPeerConnection(peerConfig);
     peerConnectionRef.current = pc;
 
     localStreamRef.current.getTracks().forEach((track) => {
@@ -129,7 +130,7 @@ const Chat = () => {
       await pc.setLocalDescription(offer);
       socket.emit("offer", { roomId: rId, sdp: offer });
     }
-  }, [cleanupPeerConnection]);
+  }, [cleanupPeerConnection, peerConfig]);
 
   // --- Effects ---
 
@@ -163,6 +164,15 @@ const Chat = () => {
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.style.overscrollBehavior = "none";
+
+    fetch(`${API_URL}/api/webrtc/ice`)
+      .then((r) => r.json().catch(() => null))
+      .then((d) => {
+        if (d?.iceServers && Array.isArray(d.iceServers) && d.iceServers.length) {
+          setPeerConfig({ iceServers: d.iceServers });
+        }
+      })
+      .catch(() => {});
 
     socket.connect();
     socket.on("online_count", (count) => setOnlineCount(Number(count) || 0));
