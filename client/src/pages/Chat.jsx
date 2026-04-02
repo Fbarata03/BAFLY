@@ -46,6 +46,7 @@ const Chat = () => {
   const remoteVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
+  const iceRestartedRef = useRef(false);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
@@ -93,6 +94,7 @@ const Chat = () => {
 
   const initPeerConnection = useCallback(async (role, rId) => {
     cleanupPeerConnection();
+    iceRestartedRef.current = false;
 
     // Master Logic: Wait for local stream if not yet ready
     let attempts = 0;
@@ -128,6 +130,19 @@ const Chat = () => {
           roomId: rId,
           candidate: event.candidate,
         });
+      }
+    };
+
+    pc.oniceconnectionstatechange = async () => {
+      if (!peerConnectionRef.current) return;
+      const state = peerConnectionRef.current.iceConnectionState;
+      if (state === "failed" && role === "caller" && !iceRestartedRef.current) {
+        iceRestartedRef.current = true;
+        try {
+          const offer = await peerConnectionRef.current.createOffer({ iceRestart: true });
+          await peerConnectionRef.current.setLocalDescription(offer);
+          socket.emit("offer", { roomId: rId, sdp: offer });
+        } catch {}
       }
     };
 
@@ -283,6 +298,7 @@ const Chat = () => {
 
     socket.on("matched", async (data) => {
       const { role, roomId: matchedRoomId } = data;
+      iceRestartedRef.current = false;
       setRoomId(matchedRoomId);
       roomIdRef.current = matchedRoomId;
       setStatus("connected");
