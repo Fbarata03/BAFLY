@@ -42,6 +42,21 @@ const Chat = () => {
 
   // --- Helper Functions ---
 
+  const emitJoinQueue = useCallback(() => {
+    const filters = JSON.parse(
+      sessionStorage.getItem("chat_filters") || '{"gender":"Any", "country":"Any"}',
+    );
+    if (socket.connected) {
+      socket.emit("join_queue", filters);
+      return;
+    }
+    const onConnect = () => {
+      socket.emit("join_queue", filters);
+      socket.off("connect", onConnect);
+    };
+    socket.on("connect", onConnect);
+  }, []);
+
   const cleanupPeerConnection = useCallback(() => {
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
@@ -65,12 +80,8 @@ const Chat = () => {
     setRoomId(null);
     roomIdRef.current = null;
     setRemoteCountryCode(null);
-    const filters = JSON.parse(
-      sessionStorage.getItem("chat_filters") ||
-        '{"gender":"Any", "country":"Any"}',
-    );
-    socket.emit("join_queue", filters);
-  }, [cleanupPeerConnection]);
+    emitJoinQueue();
+  }, [cleanupPeerConnection, emitJoinQueue]);
 
   const initPeerConnection = useCallback(async (role, rId) => {
     cleanupPeerConnection();
@@ -234,11 +245,7 @@ const Chat = () => {
           setCurrentCameraId(videoTrack.getSettings().deviceId);
         }
 
-        const filters = JSON.parse(
-          sessionStorage.getItem("chat_filters") ||
-            '{"gender":"Any", "country":"Any"}',
-        );
-        socket.emit("join_queue", filters);
+        emitJoinQueue();
       } catch (err) {
         console.error("Media error:", err);
         alert("Erro ao aceder à câmara: " + err.message);
