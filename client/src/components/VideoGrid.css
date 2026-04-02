@@ -16,13 +16,14 @@
   }
 
   .local-video-floating {
-    width: clamp(64px, 18vw, 96px);
+    width: clamp(56px, 16vw, 88px);
     height: auto;
     aspect-ratio: 3 / 4;
-    bottom: calc(8px + env(safe-area-inset-bottom));
-    right: calc(8px + env(safe-area-inset-right));
-    border-radius: 8px;
+    bottom: calc(6px + env(safe-area-inset-bottom));
+    right: calc(6px + env(safe-area-inset-right));
+    border-radius: 6px;
     border-width: 1px;
+    box-shadow: none;
   }
 
   .placeholder-icon-circle {
@@ -40,11 +41,24 @@
     padding: 4px 10px;
     font-size: 0.7rem;
   }
+
+  .label-stranger, .label-you {
+    bottom: 10px;
+    left: 10px;
+    padding: 3px 8px;
+    font-size: 0.68rem;
+    letter-spacing: 0.8px;
+  }
+
+  .label-you {
+    bottom: 6px;
+    left: 6px;
+  }
 }
 
 @media (max-width: 768px) and (orientation: landscape) {
   .local-video-floating {
-    width: clamp(56px, 14vw, 84px);
+    width: clamp(52px, 12vw, 76px);
   }
 }
 
