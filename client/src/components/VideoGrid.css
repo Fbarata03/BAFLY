@@ -49,6 +49,10 @@ video {
   /* stranger's video */
 }
 
+.remote-video.hidden {
+  display: none;
+}
+
 .video-label {
   position: absolute;
   bottom: 10px;

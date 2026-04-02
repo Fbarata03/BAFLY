@@ -7,17 +7,21 @@ const VideoGrid = ({ localVideoRef, remoteVideoRef, status, localCountryCode, re
   return (
     <div className="video-grid">
       <div className="video-container stranger">
-        {status === 'searching' ? (
+        {status === 'searching' || (status === 'connected' && !remoteVideoRef.current?.srcObject) ? (
           <div className="video-placeholder">
             <div className="spinner"></div>
-            <p>Finding someone...</p>
+            <p>{status === 'searching' ? 'Procurando alguém...' : 'Conectando vídeo...'}</p>
           </div>
-        ) : (
-          <video ref={remoteVideoRef} autoPlay playsInline className="remote-video" />
-        )}
+        ) : null}
+        <video 
+          ref={remoteVideoRef} 
+          autoPlay 
+          playsInline 
+          className={`remote-video ${status !== 'connected' ? 'hidden' : ''}`} 
+        />
         <div className="video-label">
           {remoteCountryCode ? <img className="video-flag" src={flagUrl(remoteCountryCode)} alt={remoteCountryCode} /> : null}
-          <span>STRANGER</span>
+          <span>ESTRANHO</span>
         </div>
       </div>
       
@@ -25,7 +29,7 @@ const VideoGrid = ({ localVideoRef, remoteVideoRef, status, localCountryCode, re
         <video ref={localVideoRef} autoPlay muted playsInline className="local-video" />
         <div className="video-label">
           {localCountryCode ? <img className="video-flag" src={flagUrl(localCountryCode)} alt={localCountryCode} /> : null}
-          <span>YOU</span>
+          <span>TU</span>
         </div>
       </div>
     </div>

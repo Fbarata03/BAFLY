@@ -19,6 +19,7 @@ const Chat = () => {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [currentCameraId, setCurrentCameraId] = useState(null);
   const [roomId, setRoomId] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
   const roomIdRef = useRef(null);
 
   const localVideoRef = useRef(null);
@@ -26,6 +27,28 @@ const Chat = () => {
   const localStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const navigate = useNavigate();
+
+  // Watch localStream and localVideoRef to attach stream
+  useEffect(() => {
+    if (localStream && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  // Handle keyboard shortcuts (Esc)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        if (status === "connected") {
+          handleNext();
+        } else {
+          handleStop();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [status, roomId]);
 
   const iceServers = {
     iceServers: [
@@ -95,22 +118,12 @@ const Chat = () => {
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         localStreamRef.current = stream;
+        setLocalStream(stream);
 
         // Save current device ID
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
           setCurrentCameraId(videoTrack.getSettings().deviceId);
-        }
-
-        // Ensure the video element is ready
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        } else {
-          setTimeout(() => {
-            if (localVideoRef.current) {
-              localVideoRef.current.srcObject = stream;
-            }
-          }, 500);
         }
 
         const filters = JSON.parse(
@@ -327,7 +340,7 @@ const Chat = () => {
         // Update local stream and UI
         localStreamRef.current.getTracks().forEach(track => track.stop());
         localStreamRef.current = stream;
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        setLocalStream(stream);
         setCurrentCameraId(nextDeviceId);
 
         // Replace tracks in existing RTCPeerConnection if active
