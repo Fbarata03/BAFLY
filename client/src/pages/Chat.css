@@ -1,8 +1,9 @@
 .chat-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  min-height: 100vh;
+  width: 100%;
   background: #080c10;
   color: #fff;
   overflow: hidden;
@@ -23,6 +24,36 @@
   display: flex;
   overflow: hidden;
   position: relative;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .chat-header {
+    height: 56px;
+    padding: 0 12px;
+    position: relative;
+    justify-content: center;
+  }
+
+  .chat-content {
+    flex-direction: column;
+  }
+
+  .logo.small {
+    font-size: 1.1rem;
+    position: absolute;
+    left: 12px;
+  }
+
+  .status-chip {
+    margin-left: 0;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .user-info-header {
+    display: none;
+  }
 }
 
 /* Status Chip */
@@ -37,16 +68,16 @@
   gap: 8px;
 }
 
-.status-chip.connected {
-  color: #00ff88;
-  background: rgba(0, 255, 136, 0.1);
-  border: 1px solid rgba(0, 255, 136, 0.2);
+.status-chip.searching {
+  color: #fff;
+  background: rgba(0, 170, 255, 0.2);
+  border: 1px solid rgba(0, 170, 255, 0.4);
 }
 
-.status-chip.searching {
-  color: #00aaff;
-  background: rgba(0, 170, 255, 0.1);
-  border: 1px solid rgba(0, 170, 255, 0.2);
+.status-chip.connected {
+  color: #fff;
+  background: rgba(0, 255, 136, 0.2);
+  border: 1px solid rgba(0, 255, 136, 0.4);
 }
 
 /* Logo */

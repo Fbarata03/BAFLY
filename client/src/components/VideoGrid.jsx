@@ -34,8 +34,23 @@ const VideoGrid = ({
         
         {/* Status Chip Overlay */}
         <div className={`status-overlay-chip ${status}`}>
-          <span className="status-dot"></span>
-          {status === 'connected' ? 'Connected' : 'Searching...'}
+          {status === 'connected' ? (
+            <>
+              {remoteCountryCode && (
+                <img 
+                  src={flagUrl(remoteCountryCode)} 
+                  alt={remoteCountryCode} 
+                  style={{ width: 18, height: 14, borderRadius: 2 }} 
+                />
+              )}
+              Connected
+            </>
+          ) : (
+            <>
+              <span className="status-dot"></span>
+              Searching...
+            </>
+          )}
         </div>
 
         {/* Stranger Label */}

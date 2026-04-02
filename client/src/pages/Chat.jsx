@@ -237,18 +237,6 @@ const Chat = () => {
     socket.on("waiting", () => setStatus("searching"));
 
     socket.on("matched", async (data) => {
-      const currentUser = localStorage.getItem("auth_user");
-      if (!currentUser) {
-        const callCount = parseInt(localStorage.getItem("anon_calls") || "0");
-        if (callCount >= 4) {
-          alert("Limite de chamadas anónimas atingido! Por favor, cria uma conta.");
-          socket.disconnect();
-          navigate("/auth?mode=register");
-          return;
-        }
-        localStorage.setItem("anon_calls", (callCount + 1).toString());
-      }
-
       const { role, roomId: matchedRoomId } = data;
       setRoomId(matchedRoomId);
       roomIdRef.current = matchedRoomId;
@@ -381,7 +369,7 @@ const Chat = () => {
           {status === "connected" && "✓ Conectado"}
           {status === "disconnected" && "○ Desconectado"}
         </div>
-        <div style={{marginLeft:'auto'}}>
+        <div className="user-info-header" style={{marginLeft:'auto'}}>
           {user ? (
             <div style={{display:'flex', alignItems:'center', gap:10}}>
               <span>{user.displayName || user.username}</span>

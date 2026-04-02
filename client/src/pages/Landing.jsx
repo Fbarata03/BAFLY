@@ -255,23 +255,34 @@ const Landing = () => {
       <div className="landing-auth">
         <div className="hero-card">
           <div className="logo-circle">
-            <div className="logo-mark"><span className="logo-ba">BA</span><span className="logo-fly">FLY</span></div>
+            <div className="logo-mark">
+              <span className="logo-ba">BA</span>
+              <span className="logo-fly">FLY</span>
+            </div>
           </div>
-          <h2 className="hero-title">Entra no BAFLY</h2>
+          <h2 className="hero-title">Benvindo ao BAFLY</h2>
           <div className="hero-sub">MEET STRANGERS · NO LIMITS</div>
-          <div className="online-pill"><span className="online-dot"></span>{onlineCount.toLocaleString()} online agora</div>
           
-          <button className="btn outline" onClick={() => setSimple(false)}>Entrar como Anónimo</button>
-          <button className="btn subtle" onClick={() => navigate('/auth?mode=register')}>Criar Conta</button>
+          <div className="online-pill">
+            <span className="online-dot"></span>
+            {onlineCount.toLocaleString()} online agora
+          </div>
+          
+          <div className="auth-actions">
+            <button className="btn primary" onClick={() => setSimple(false)}>
+              Começar Agora
+            </button>
+            <button className="btn outline" onClick={() => navigate('/auth?mode=register')}>
+              Criar Conta Grátis
+            </button>
+          </div>
           
           <div className="auth-footer">
-            Já tem uma conta? <span className="login-link" onClick={() => navigate('/auth?mode=login')}>Fazer login</span>
+            Já tens uma conta? <span className="login-link" onClick={() => navigate('/auth?mode=login')}>Entrar</span>
           </div>
 
-          <div className="age-note">+ Apenas para maiores de 18 anos</div>
-          <div className="legal"></div>
+          <div className="age-note">🔞 APENAS PARA MAIORES DE 18 ANOS</div>
         </div>
-        
       </div>
     );
   }

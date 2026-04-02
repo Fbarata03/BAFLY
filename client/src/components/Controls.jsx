@@ -15,24 +15,30 @@ const Controls = ({
   return (
     <div className="controls-bar">
       <button className="ctrl-btn mute" onClick={onMute} title={isMuted ? "Unmute" : "Mute"}>
-        {isMuted ? "🎤 [OFF]" : "🎤 MUTE"}
+        <span className="material-icons">{isMuted ? 'mic_off' : 'mic'}</span>
+        <span className="btn-label">{isMuted ? "[OFF]" : "MUTE"}</span>
       </button>
       <button className="ctrl-btn camera" onClick={onVideoOff} title={isVideoOff ? "Video On" : "Video Off"}>
-        {isVideoOff ? "📷 [OFF]" : "📷 CAM"}
+        <span className="material-icons">{isVideoOff ? 'videocam_off' : 'videocam'}</span>
+        <span className="btn-label">{isVideoOff ? "[OFF]" : "CAM"}</span>
       </button>
       {hasMultipleCameras && (
         <button className="ctrl-btn camera-switch" onClick={onSwitchCamera} title="Switch Camera">
-          🔄 TROCAR
+          <span className="material-icons">cameraswitch</span>
+          <span className="btn-label">TROCAR</span>
         </button>
       )}
       <button className="ctrl-btn next-btn" onClick={onNext}>
-        ⏭ NEXT
+        <span className="material-icons">skip_next</span>
+        NEXT
       </button>
       <button className="ctrl-btn report" onClick={onReport}>
-        🚩 REPORT
+        <span className="material-icons">flag</span>
+        <span className="btn-label">REPORT</span>
       </button>
       <button className="ctrl-btn stop" onClick={onStop}>
-        ✕ STOP
+        <span className="material-icons">close</span>
+        <span className="btn-label">STOP</span>
       </button>
     </div>
   );

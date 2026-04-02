@@ -202,7 +202,7 @@ io.on('connection', async (socket) => {
         socket.leave(room);
         
         // Update session in DB
-        db.query('UPDATE sessions SET ended_at = NOW(), end_reason = $1 WHERE room_id = $2 AND ended_at IS NULL', ['disconnected', room]).catch(console.error);
+        db.query('UPDATE sessions SET ended_at = CURRENT_TIMESTAMP, end_reason = $1 WHERE room_id = $2 AND ended_at IS NULL', ['disconnected', room]).catch(console.error);
       }
     });
   }
@@ -237,7 +237,7 @@ io.on('connection', async (socket) => {
       otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
 
       // Log session to DB
-      db.query('INSERT INTO sessions (room_id, user1_id, user2_id, started_at) VALUES ($1, $2, $3, NOW())', [roomId, user.socket.id, otherUser.socket.id]).catch(console.error);
+      db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(console.error);
     } else {
       queue.push(user);
       user.socket.emit('waiting');
@@ -246,10 +246,8 @@ io.on('connection', async (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-if (process.env.NODE_ENV !== 'production') {
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 module.exports = app;
