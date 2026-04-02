@@ -16,10 +16,11 @@
   }
 
   .local-video-floating {
-    width: 108px;
-    height: 144px;
-    bottom: 8px;
-    right: 8px;
+    width: clamp(84px, 24vw, 120px);
+    height: auto;
+    aspect-ratio: 3 / 4;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    right: calc(8px + env(safe-area-inset-right));
     border-radius: 8px;
     border-width: 1px;
   }
@@ -38,6 +39,12 @@
     left: 10px;
     padding: 4px 10px;
     font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .local-video-floating {
+    width: clamp(72px, 18vw, 100px);
   }
 }
 
