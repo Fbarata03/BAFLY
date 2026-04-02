@@ -66,6 +66,43 @@ app.get('/api/health/db', async (req, res) => {
   }
 });
 
+const getDbConfigInfo = () => {
+  const url = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  if (url) {
+    try {
+      const u = new URL(url);
+      return {
+        source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'MYSQL_URL',
+        host: u.hostname || null,
+        port: u.port ? Number(u.port) : 3306,
+        user: u.username ? decodeURIComponent(u.username) : null,
+        database: (u.pathname || '').replace(/^\//, '') || null,
+        hasPassword: !!u.password,
+        passwordLength: u.password ? String(decodeURIComponent(u.password)).length : 0,
+        sslModeFromUrl: (u.searchParams.get('ssl-mode') || u.searchParams.get('sslmode') || null)
+      };
+    } catch {
+      return { source: process.env.DATABASE_URL ? 'DATABASE_URL' : 'MYSQL_URL', parseError: true };
+    }
+  }
+  return {
+    source: 'parts',
+    host: process.env.DB_HOST || null,
+    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : null,
+    user: process.env.DB_USER || null,
+    database: process.env.DB_NAME || null,
+    hasPassword: !!process.env.DB_PASS,
+    passwordLength: process.env.DB_PASS ? String(process.env.DB_PASS).length : 0
+  };
+};
+
+app.get('/api/health/db/config', (req, res) => {
+  return res.json({
+    ...getDbConfigInfo(),
+    sslModeEnv: process.env.DB_SSL_MODE || null
+  });
+});
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
