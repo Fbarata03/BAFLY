@@ -51,6 +51,11 @@
   border-color: #ff4444;
 }
 
+.ctrl-btn.camera-switch:hover {
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+}
+
 .stop {
   color: var(--text-gray);
 }

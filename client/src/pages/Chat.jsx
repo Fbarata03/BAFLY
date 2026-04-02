@@ -16,6 +16,8 @@ const Chat = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+  const [currentCameraId, setCurrentCameraId] = useState(null);
   const [roomId, setRoomId] = useState(null);
   const roomIdRef = useRef(null);
 
@@ -51,7 +53,13 @@ const Chat = () => {
       })
       .catch(() => {});
 
-    const startChat = async () => {
+    // Check for multiple cameras
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setHasMultipleCameras(videoDevices.length > 1);
+    });
+
+    const startChat = async (deviceId = null) => {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           alert("O teu navegador não suporta acesso à câmara.");
@@ -59,18 +67,51 @@ const Chat = () => {
           return;
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        // Master Logic: Try to find a non-virtual camera if no deviceId is provided
+        let targetDeviceId = deviceId;
+        if (!targetDeviceId && videoDevices.length > 0) {
+          const realCamera = videoDevices.find(d => 
+            !d.label.toLowerCase().includes('virtual') && 
+            !d.label.toLowerCase().includes('obs') &&
+            !d.label.toLowerCase().includes('utility')
+          );
+          if (realCamera) {
+            targetDeviceId = realCamera.deviceId;
+          }
+        }
+
+        // Clean up previous stream if switching
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+
+        const constraints = {
+          video: targetDeviceId ? { deviceId: { exact: targetDeviceId } } : { facingMode: 'user' },
           audio: true,
-        });
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         localStreamRef.current = stream;
 
+        // Save current device ID
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          setCurrentCameraId(videoTrack.getSettings().deviceId);
+        }
+
         // Ensure the video element is ready
-        setTimeout(() => {
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-        }, 100);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        } else {
+          setTimeout(() => {
+            if (localVideoRef.current) {
+              localVideoRef.current.srcObject = stream;
+            }
+          }, 500);
+        }
 
         const filters = JSON.parse(
           sessionStorage.getItem("chat_filters") ||
@@ -265,6 +306,45 @@ const Chat = () => {
     }
   };
 
+  const handleSwitchCamera = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length > 1) {
+        // Find current index
+        const currentIndex = videoDevices.findIndex(d => d.deviceId === currentCameraId);
+        // Pick next one
+        const nextIndex = (currentIndex + 1) % videoDevices.length;
+        const nextDeviceId = videoDevices[nextIndex].deviceId;
+        
+        const constraints = {
+          video: { deviceId: { exact: nextDeviceId } },
+          audio: true
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Update local stream and UI
+        localStreamRef.current.getTracks().forEach(track => track.stop());
+        localStreamRef.current = stream;
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        setCurrentCameraId(nextDeviceId);
+
+        // Replace tracks in existing RTCPeerConnection if active
+        if (peerConnectionRef.current) {
+          const videoTrack = stream.getVideoTracks()[0];
+          const sender = peerConnectionRef.current.getSenders().find(s => s.track && s.track.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(videoTrack);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error switching camera:", err);
+      alert("Não foi possível trocar a câmara: " + err.message);
+    }
+  };
+
   return (
     <div className="chat-page">
       <header className="chat-header">
@@ -312,6 +392,8 @@ const Chat = () => {
         onStop={handleStop}
         onMute={toggleMute}
         onVideoOff={toggleVideo}
+        onSwitchCamera={handleSwitchCamera}
+        hasMultipleCameras={hasMultipleCameras}
         onReport={() => setShowReportModal(true)}
         isMuted={isMuted}
         isVideoOff={isVideoOff}

@@ -381,13 +381,42 @@
 
 .preview-label {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  font-size: 0.6rem;
-  background: rgba(0,0,0,0.5);
-  padding: 2px 5px;
+  top: 15px;
+  left: 15px;
+  background: rgba(0, 0, 0, 0.7);
   color: var(--neon-green);
-  font-family: 'Space Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid var(--neon-green);
+  z-index: 5;
+}
+
+.switch-camera-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 5;
+  transition: all 0.2s;
+}
+
+.switch-camera-btn:hover {
+  background: var(--neon-blue);
+  border-color: #fff;
+  transform: scale(1.05);
 }
 
 @media (max-width: 768px) {
