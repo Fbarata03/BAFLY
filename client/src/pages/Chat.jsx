@@ -14,7 +14,13 @@ const ICE_SERVERS = {
   ],
 };
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" ? "" : "https://bafly-server-production.up.railway.app");
+const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? ""
+    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+      ? PROD_BACKEND
+      : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
@@ -174,8 +180,13 @@ const Chat = () => {
       })
       .catch(() => {});
 
-    socket.connect();
     socket.on("online_count", (count) => setOnlineCount(Number(count) || 0));
+    const onConnect = () => {
+      socket.emit("get_online_count");
+      if (status === "searching") emitJoinQueue();
+    };
+    socket.on("connect", onConnect);
+    socket.connect();
     
     // User info
     const u = localStorage.getItem("auth_user");
@@ -330,6 +341,7 @@ const Chat = () => {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
       socket.off("online_count");
+      socket.off("connect", onConnect);
       socket.off("waiting");
       socket.off("matched");
       socket.off("offer");
@@ -343,7 +355,7 @@ const Chat = () => {
       document.body.style.overflow = prevBodyOverflow;
       document.body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [navigate, initPeerConnection, cleanupPeerConnection]);
+  }, [navigate, initPeerConnection, cleanupPeerConnection, emitJoinQueue, status]);
 
   // --- Handlers ---
 

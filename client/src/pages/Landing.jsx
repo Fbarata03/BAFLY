@@ -4,7 +4,13 @@ import { socket } from '../socket';
 import OnlineBadge from '../components/OnlineBadge';
 import './Landing.css';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" ? "" : "https://bafly-server-production.up.railway.app");
+const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? ""
+    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+      ? PROD_BACKEND
+      : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
 const DEFAULT_COUNTRY_OPTIONS = [
   { value: 'Any', label: 'Qualquer', flag: null },
@@ -37,8 +43,10 @@ const Landing = () => {
   const [simple, setSimple] = useState(!localStorage.getItem('auth_token') && !localStorage.getItem('auth_user'));
 
   useEffect(() => {
-    socket.connect();
     socket.on('online_count', (count) => setOnlineCount(count));
+    const onConnect = () => socket.emit('get_online_count');
+    socket.on('connect', onConnect);
+    socket.connect();
     
     const token = localStorage.getItem('auth_token');
     const u = localStorage.getItem('auth_user');
@@ -63,6 +71,7 @@ const Landing = () => {
 
     return () => {
       socket.off('online_count');
+      socket.off('connect', onConnect);
     };
   }, []);
 

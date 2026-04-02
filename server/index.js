@@ -282,6 +282,10 @@ setInterval(attemptMatchAll, 750);
 
 io.on('connection', async (socket) => {
   io.emit('online_count', getOnlineCount());
+
+  socket.on('get_online_count', () => {
+    socket.emit('online_count', getOnlineCount());
+  });
   try {
     const ip = getIpFromHeaders(socket.handshake?.headers || {}) || normalizeIp(socket.handshake?.address);
     const geo = await lookupGeoByIp(ip);
