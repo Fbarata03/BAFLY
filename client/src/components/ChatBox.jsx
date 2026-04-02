@@ -2,45 +2,63 @@ import React, { useState, useEffect, useRef } from 'react';
 import './ChatBox.css';
 
 const ChatBox = ({ messages, onSendMessage, disabled }) => {
-  const [inputText, setInputText] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = (e) => {
+  const handleSend = (e) => {
     e.preventDefault();
-    if (inputText.trim() && !disabled) {
-      onSendMessage(inputText.trim());
-      setInputText('');
+    if (inputValue.trim() && !disabled) {
+      onSendMessage(inputValue.trim());
+      setInputValue('');
     }
   };
 
   return (
-    <div className={`chat-sidebar ${disabled ? 'disabled' : ''}`}>
-      <div className="messages-list">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`message-item ${msg.type}`}>
+    <div className="chat-sidebar">
+      <div className="chat-sidebar-header">
+        <div className="chat-sidebar-icon">
+           <span className="material-icons">chat_bubble_outline</span>
+        </div>
+        <div className="chat-sidebar-info">
+          <h3>Chat</h3>
+          <p>Online</p>
+        </div>
+      </div>
+
+      <div className="chat-messages-container">
+        {messages.map((msg, index) => (
+          <div key={index} className={`msg-wrapper ${msg.type}`}>
             {msg.type === 'system' ? (
-              <span className="system-msg"><i>{msg.text}</i></span>
+              <div className="msg-system">{msg.text}</div>
             ) : (
-              <div className="msg-bubble">{msg.text}</div>
+              <div className={`msg-bubble ${msg.type}`}>
+                {msg.text}
+              </div>
             )}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="chat-input-area" onSubmit={handleSubmit}>
-        <input 
-          type="text" 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder={disabled ? "Waiting for stranger..." : "Type a message..."}
+      <form className="chat-input-area" onSubmit={handleSend}>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Type a message..."
           disabled={disabled}
         />
-        <button type="submit" disabled={disabled || !inputText.trim()}>➤</button>
+        <button type="submit" className="send-btn" disabled={disabled || !inputValue.trim()}>
+          <span className="material-icons">send</span>
+        </button>
       </form>
     </div>
   );

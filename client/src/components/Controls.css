@@ -1,90 +1,76 @@
 .controls-bar {
+  height: 90px;
+  background: #0d1117;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 15px 20px;
-  background-color: #0c1218;
+  justify-content: center;
+  gap: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  gap: 15px;
-  z-index: 30;
+  padding: 0 20px;
 }
 
 .ctrl-btn {
-  background: transparent;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 10px 20px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  font-weight: 700;
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-radius: 0;
   transition: all 0.2s;
+  font-size: 0; /* Hide text, use icons or specific styles */
 }
 
 .ctrl-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: white;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-.next-btn {
-  background-color: var(--neon-blue);
-  border-color: var(--neon-blue);
-  color: white;
-  padding: 12px 40px;
-  font-size: 1rem;
+/* Icon overrides since we use text labels in JS */
+.ctrl-btn::before {
+  font-family: 'Material Icons';
+  font-size: 24px;
 }
 
-.next-btn:hover {
-  background-color: #0099ee;
-  border-color: #0099ee;
-  transform: scale(1.05);
+.ctrl-btn.mute::before { content: 'mic'; }
+.ctrl-btn.mute[title="Unmute"]::before { content: 'mic_off'; color: #ff4444; }
+
+.ctrl-btn.camera::before { content: 'videocam'; }
+.ctrl-btn.camera[title="Video On"]::before { content: 'videocam_off'; color: #ff4444; }
+
+.ctrl-btn.camera-switch::before { content: 'cameraswitch'; }
+
+.ctrl-btn.report::before { content: 'flag'; }
+.ctrl-btn.report:hover { color: #ffbb33; border-color: #ffbb33; }
+
+.ctrl-btn.stop::before { content: 'close'; }
+.ctrl-btn.stop:hover { background: #ff4444; border-color: #ff4444; color: #fff; }
+
+/* Special Next Button */
+.ctrl-btn.next-btn {
+  width: auto;
+  min-width: 140px;
+  background: #00aaff;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  gap: 10px;
 }
 
-.report {
-  color: #ff4444;
-  border-color: rgba(255, 68, 68, 0.2);
+.ctrl-btn.next-btn::before {
+  content: 'skip_next';
+  font-size: 20px;
 }
 
-.report:hover {
-  background: rgba(255, 68, 68, 0.1);
-  border-color: #ff4444;
-}
-
-.ctrl-btn.camera-switch:hover {
-  border-color: var(--neon-blue);
-  color: var(--neon-blue);
-}
-
-.stop {
-  color: var(--text-gray);
-}
-
-.stop:hover {
-  color: white;
-  border-color: white;
-}
-
-.ctrl-btn.mute.active, .ctrl-btn.camera.active {
-  background: rgba(255, 68, 68, 0.2);
-  border-color: #ff4444;
-  color: #ff4444;
-}
-
-@media (max-width: 768px) {
-  .controls-bar {
-    padding: 10px;
-    gap: 8px;
-    justify-content: space-around;
-  }
-  
-  .ctrl-btn {
-    padding: 8px 12px;
-    font-size: 0.7rem;
-  }
-  
-  .next-btn {
-    padding: 10px 20px;
-    font-size: 0.85rem;
-  }
+.ctrl-btn.next-btn:hover {
+  background: #0099ee;
+  box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
 }

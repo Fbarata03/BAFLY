@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './VideoGrid.css';
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
@@ -12,31 +12,51 @@ const VideoGrid = ({
   remoteVideoActive 
 }) => {
   return (
-    <div className="video-grid">
-      <div className="video-container stranger">
+    <div className="video-main-area">
+      {/* Stranger Video (Background/Main) */}
+      <div className="remote-video-wrapper">
         {(status === 'searching' || (status === 'connected' && !remoteVideoActive)) && (
-          <div className="video-placeholder">
-            <div className="spinner"></div>
-            <p>{status === 'searching' ? 'Procurando alguém...' : 'Conectando vídeo...'}</p>
+          <div className="video-placeholder-main">
+            <div className="placeholder-icon-circle">
+              <span className="material-icons">videocam</span>
+            </div>
+            <p className="placeholder-text">
+              {status === 'searching' ? 'Procurando alguém...' : 'Conectando vídeo...'}
+            </p>
           </div>
         )}
         <video 
           ref={remoteVideoRef} 
           autoPlay 
           playsInline 
-          className={`remote-video ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`} 
+          className={`remote-video-main ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`} 
         />
-        <div className="video-label">
-          {remoteCountryCode ? <img className="video-flag" src={flagUrl(remoteCountryCode)} alt={remoteCountryCode} /> : null}
-          <span>ESTRANHO</span>
+        
+        {/* Status Chip Overlay */}
+        <div className={`status-overlay-chip ${status}`}>
+          <span className="status-dot"></span>
+          {status === 'connected' ? 'Connected' : 'Searching...'}
+        </div>
+
+        {/* Stranger Label */}
+        <div className="label-stranger">
+          STRANGER
         </div>
       </div>
       
-      <div className="video-container you">
-        <video ref={localVideoRef} autoPlay muted playsInline className="local-video" />
-        <div className="video-label">
-          {localCountryCode ? <img className="video-flag" src={flagUrl(localCountryCode)} alt={localCountryCode} /> : null}
-          <span>TU</span>
+      {/* Your Video (Floating Overlay) */}
+      <div className="local-video-floating">
+        <div className="local-video-inner">
+          <video ref={localVideoRef} autoPlay muted playsInline className="local-video-feed" />
+          <div className="label-you">YOU</div>
+          
+          {/* If no video yet */}
+          {!localVideoRef.current?.srcObject && (
+             <div className="local-placeholder-overlay">
+                <span className="material-icons">videocam</span>
+                <p>Your Camera</p>
+             </div>
+          )}
         </div>
       </div>
     </div>

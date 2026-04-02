@@ -2,60 +2,59 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--bg-color);
-  color: white;
+  width: 100vw;
+  background: #080c10;
+  color: #fff;
+  overflow: hidden;
 }
 
 .chat-header {
+  height: 70px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: rgba(0,0,0,0.5);
-}
-
-.logo.small {
-  font-size: 1.5rem;
-  font-weight: 800;
-}
-
-.status-chip {
-  padding: 5px 15px;
-  font-size: 0.8rem;
-  font-family: 'Space Mono', monospace;
-  border-radius: 0;
-}
-
-.status-chip.searching {
-  color: #ffcc00;
-  border: 1px solid #ffcc00;
-  animation: pulse-yellow 2s infinite;
-}
-
-.status-chip.connected {
-  color: var(--neon-green);
-  border: 1px solid var(--neon-green);
-}
-
-.status-chip.disconnected {
-  color: var(--text-gray);
-  border: 1px solid var(--text-gray);
+  padding: 0 30px;
+  background: #080c10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 100;
 }
 
 .chat-content {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
-@keyframes pulse-yellow {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+/* Status Chip */
+.status-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-@media (max-width: 768px) {
-  .chat-content {
-    flex-direction: column;
-  }
+.status-chip.connected {
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
 }
+
+.status-chip.searching {
+  color: #00aaff;
+  background: rgba(0, 170, 255, 0.1);
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+/* Logo */
+.logo.small {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.logo-ba { color: #00ff88; }
+.logo-fly { color: #fff; }
