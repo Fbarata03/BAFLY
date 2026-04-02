@@ -14,6 +14,8 @@ const ICE_SERVERS = {
   ],
 };
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
   const [messages, setMessages] = useState([]);
@@ -159,14 +161,14 @@ const Chat = () => {
     } else {
       const t = localStorage.getItem("auth_token");
       if (t) {
-        fetch("/api/auth/me", { headers: { Authorization: `Bearer ${t}` } })
+        fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${t}` } })
           .then(r => r.json().catch(() => ({})))
           .then(d => { if (d?.user) { localStorage.setItem("auth_user", JSON.stringify(d.user)); setUser(d.user); } });
       }
     }
 
     // Geo info
-    fetch("/api/geo/me")
+    fetch(`${API_URL}/api/geo/me`)
       .then((r) => r.json().catch(() => ({})))
       .then((d) => {
         if (d?.countryCode) setLocalCountryCode(String(d.countryCode).toUpperCase());
