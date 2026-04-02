@@ -441,7 +441,6 @@ io.on('connection', async (socket) => {
     } else {
       queue.push(user);
       user.socket.emit('waiting');
-      attemptMatchAll();
     }
   }
 });

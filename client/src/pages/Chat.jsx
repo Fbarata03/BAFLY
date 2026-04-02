@@ -41,6 +41,7 @@ const Chat = () => {
   
   const roomIdRef = useRef(null);
   const pendingMessagesRef = useRef([]);
+  const pendingSignalingRef = useRef([]);
   const pendingHintShownRef = useRef(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -52,6 +53,62 @@ const Chat = () => {
   const navigate = useNavigate();
 
   // --- Helper Functions ---
+
+  const processSignalingQueue = async () => {
+    if (!peerConnectionRef.current) return;
+    const queue = pendingSignalingRef.current;
+    pendingSignalingRef.current = [];
+    for (const msg of queue) {
+      if (msg.type === "offer") {
+        await handleOffer(msg.data);
+      } else if (msg.type === "answer") {
+        await handleAnswer(msg.data);
+      } else if (msg.type === "ice_candidate") {
+        await handleIceCandidate(msg.data);
+      }
+    }
+  };
+
+  const handleOffer = async (data) => {
+    if (!peerConnectionRef.current) {
+      pendingSignalingRef.current.push({ type: "offer", data });
+      return;
+    }
+    try {
+      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      const answer = await peerConnectionRef.current.createAnswer();
+      await peerConnectionRef.current.setLocalDescription(answer);
+      socket.emit("answer", { roomId: roomIdRef.current, sdp: answer });
+      processSignalingQueue();
+    } catch (err) {
+      console.error("Offer error:", err);
+    }
+  };
+
+  const handleAnswer = async (data) => {
+    if (!peerConnectionRef.current) {
+      pendingSignalingRef.current.push({ type: "answer", data });
+      return;
+    }
+    try {
+      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      processSignalingQueue();
+    } catch (err) {
+      console.error("Answer error:", err);
+    }
+  };
+
+  const handleIceCandidate = async (data) => {
+    if (!peerConnectionRef.current || !peerConnectionRef.current.remoteDescription) {
+      pendingSignalingRef.current.push({ type: "ice_candidate", data });
+      return;
+    }
+    try {
+      await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } catch (err) {
+      console.error("ICE error:", err);
+    }
+  };
 
   const emitJoinQueue = useCallback(() => {
     const filters = JSON.parse(
@@ -91,6 +148,7 @@ const Chat = () => {
     setRoomId(null);
     roomIdRef.current = null;
     setRemoteCountryCode(null);
+    pendingSignalingRef.current = [];
     emitJoinQueue();
   }, [cleanupPeerConnection, emitJoinQueue]);
 
@@ -153,6 +211,8 @@ const Chat = () => {
       await pc.setLocalDescription(offer);
       socket.emit("offer", { roomId: rId, sdp: offer });
     }
+
+    processSignalingQueue();
   }, [cleanupPeerConnection, peerConfig]);
 
   // --- Effects ---
@@ -161,6 +221,7 @@ const Chat = () => {
   useEffect(() => {
     if (localStream && localVideoRef.current) {
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch(e => console.warn("Local video play error:", e));
     }
   }, [localStream]);
 
@@ -250,8 +311,9 @@ const Chat = () => {
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         
         let targetDeviceId = deviceId;
-        if (!targetDeviceId && videoDevices.length > 0) {
+        if (!targetDeviceId && videoDevices.length > 0 && videoDevices[0].label !== '') {
           const realCamera = videoDevices.find(d => 
+            d.label && 
             !d.label.toLowerCase().includes('virtual') && 
             !d.label.toLowerCase().includes('obs') &&
             !d.label.toLowerCase().includes('utility')
@@ -326,27 +388,11 @@ const Chat = () => {
       }
     });
 
-    socket.on("offer", async (data) => {
-      if (!peerConnectionRef.current) return;
-      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
-      const answer = await peerConnectionRef.current.createAnswer();
-      await peerConnectionRef.current.setLocalDescription(answer);
-      socket.emit("answer", { roomId: roomIdRef.current, sdp: answer });
-    });
+    socket.on("offer", handleOffer);
 
-    socket.on("answer", async (data) => {
-      if (!peerConnectionRef.current) return;
-      await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    });
+    socket.on("answer", handleAnswer);
 
-    socket.on("ice_candidate", async (data) => {
-      if (!peerConnectionRef.current) return;
-      try {
-        await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-      } catch (e) {
-        console.error("Error adding ice candidate", e);
-      }
-    });
+    socket.on("ice_candidate", handleIceCandidate);
 
     socket.on("message", (data) => {
       setMessages((prev) => [...prev, { type: "stranger", text: data.text }]);
