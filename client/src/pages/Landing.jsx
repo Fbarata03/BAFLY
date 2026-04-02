@@ -4,7 +4,7 @@ import { socket } from '../socket';
 import OnlineBadge from '../components/OnlineBadge';
 import './Landing.css';
 
-const API_URL = import.meta.env.VITE_API_URL || "";
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" ? "" : "https://bafly-server-production.up.railway.app");
 
 const DEFAULT_COUNTRY_OPTIONS = [
   { value: 'Any', label: 'Qualquer', flag: null },
