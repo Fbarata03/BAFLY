@@ -27,25 +27,14 @@ const Landing = () => {
   const [localCountryCode, setLocalCountryCode] = useState(null);
   const [localCountryName, setLocalCountryName] = useState(null);
   const [onlineCount, setOnlineCount] = useState(0);
-  const streamRef = useRef(null);
-  const videoRef = useRef(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
   const countryRef = useRef(null);
   const countryTouchedRef = useRef(false);
   const [simple, setSimple] = useState(!localStorage.getItem('auth_token') && !localStorage.getItem('auth_user'));
-  const [legalOpen, setLegalOpen] = useState(null);
-  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
-  const [currentCameraId, setCurrentCameraId] = useState(null);
 
   useEffect(() => {
-    // Check for multiple cameras
-    navigator.mediaDevices.enumerateDevices().then(devices => {
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      setHasMultipleCameras(videoDevices.length > 1);
-    });
-
     socket.connect();
     socket.on('online_count', (count) => setOnlineCount(count));
     
@@ -74,97 +63,6 @@ const Landing = () => {
       socket.off('online_count');
     };
   }, []);
-
-  // Get camera preview only when NOT in simple auth mode
-  useEffect(() => {
-    if (simple) return;
-
-    const startPreview = async (deviceId = null) => {
-      try {
-        if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-          alert("ERRO DE SEGURANÇA: O browser bloqueia a câmara em IPs de rede sem HTTPS. \n\nSoluções:\n1. Usa 'http://localhost:5173' no teu PC.\n2. Se queres testar noutro dispositivo via rede, tens de ativar um flag no Chrome (ver instruções no chat).");
-          return;
-        }
-
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert("O teu navegador não suporta acesso à câmara ou estás num contexto inseguro.");
-          return;
-        }
-
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        
-        // Master Logic: Try to find a non-virtual camera if no deviceId is provided
-        let targetDeviceId = deviceId;
-        if (!targetDeviceId && videoDevices.length > 0) {
-          const realCamera = videoDevices.find(d => 
-            !d.label.toLowerCase().includes('virtual') && 
-            !d.label.toLowerCase().includes('obs') &&
-            !d.label.toLowerCase().includes('utility')
-          );
-          if (realCamera) {
-            targetDeviceId = realCamera.deviceId;
-          }
-        }
-
-        // Clean up previous stream if switching
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-        }
-
-        const constraints = {
-          video: targetDeviceId ? { deviceId: { exact: targetDeviceId } } : { facingMode: 'user' },
-          audio: true,
-        };
-
-        let userStream;
-        try {
-          userStream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (innerErr) {
-          console.warn("Preferred constraints failed, trying generic:", innerErr);
-          userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        }
-
-        streamRef.current = userStream;
-
-        // Save current device ID
-        const videoTrack = userStream.getVideoTracks()[0];
-        if (videoTrack) {
-          setCurrentCameraId(videoTrack.getSettings().deviceId);
-        }
-        
-        // Wait for next tick to ensure videoRef is attached
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = userStream;
-          }
-        }, 100);
-      } catch (err) {
-        console.error("Camera error:", err);
-        if (err.name === 'NotAllowedError') {
-          alert("Permissão de câmara negada. Por favor, ativa a câmara nas definições do browser.");
-        } else if (err.name === 'NotFoundError') {
-          alert("Nenhuma câmara encontrada no dispositivo.");
-        } else if (err.name === 'NotReadableError') {
-          alert("A câmara não conseguiu iniciar (normalmente está a ser usada por outra app/tab). Fecha Zoom/Teams/Meet, outras tabs com câmara, e tenta novamente.");
-        } else {
-          alert("Erro ao aceder à câmara: " + err.message);
-        }
-      }
-    };
-
-    startPreview();
-
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    };
-  }, [simple]);
 
   useEffect(() => {
     fetch('https://flagcdn.com/en/codes.json')
@@ -207,36 +105,6 @@ const Landing = () => {
     return () => document.removeEventListener('mousedown', onDown);
   }, []);
 
-  const handleSwitchCamera = async () => {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      
-      if (videoDevices.length > 1) {
-        const currentIndex = videoDevices.findIndex(d => d.deviceId === currentCameraId);
-        const nextIndex = (currentIndex + 1) % videoDevices.length;
-        const nextDeviceId = videoDevices[nextIndex].deviceId;
-        
-        // Clean up previous stream
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-        }
-
-        const constraints = {
-          video: { deviceId: { exact: nextDeviceId } },
-          audio: true
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-        setCurrentCameraId(nextDeviceId);
-      }
-    } catch (err) {
-      console.error("Error switching camera:", err);
-      alert("Não foi possível trocar a câmara: " + err.message);
-    }
-  };
-
   const handleStart = async () => {
     try {
       if (simple) {
@@ -250,14 +118,6 @@ const Landing = () => {
     } catch (err) {
       alert("Ativa a câmara para começar.");
       return;
-    }
-
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
     }
     // Store filters in sessionStorage for Chat page
     sessionStorage.setItem('chat_filters', JSON.stringify({ gender, country }));
@@ -410,11 +270,6 @@ const Landing = () => {
           <span>Anónimo</span> · <span>Sem registo</span> · <span>Grátis</span> · <span>Worldwide</span>
         </div>
       </main>
-
-      <div className="preview-container">
-        <video ref={videoRef} autoPlay muted playsInline />
-        <div className="preview-label">A TUA CÂMARA</div>
-      </div>
     </div>
   );
 };
