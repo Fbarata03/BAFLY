@@ -7,6 +7,13 @@ import Controls from "../components/Controls";
 import ReportModal from "../components/ReportModal";
 import "./Chat.css";
 
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+  ],
+};
+
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
   const [messages, setMessages] = useState([]);
@@ -28,13 +35,6 @@ const Chat = () => {
   const localStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const navigate = useNavigate();
-
-  const iceServers = {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-    ],
-  };
 
   // --- Helper Functions ---
 
@@ -71,19 +71,31 @@ const Chat = () => {
   const initPeerConnection = useCallback(async (role, rId) => {
     cleanupPeerConnection();
 
-    const pc = new RTCPeerConnection(iceServers);
+    // Master Logic: Wait for local stream if not yet ready
+    let attempts = 0;
+    while (!localStreamRef.current && attempts < 50) { // Max 5 seconds
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+
+    if (!localStreamRef.current) {
+      console.error("Local stream still not ready after waiting.");
+      return;
+    }
+
+    const pc = new RTCPeerConnection(ICE_SERVERS);
     peerConnectionRef.current = pc;
 
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => {
-        pc.addTrack(track, localStreamRef.current);
-      });
-    }
+    localStreamRef.current.getTracks().forEach((track) => {
+      pc.addTrack(track, localStreamRef.current);
+    });
 
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
         setRemoteVideoActive(true);
+        // Master touch: ensure video plays (bypass autoplay policy)
+        remoteVideoRef.current.play().catch(e => console.warn("Autoplay blocked:", e));
       }
     };
 
@@ -101,7 +113,7 @@ const Chat = () => {
       await pc.setLocalDescription(offer);
       socket.emit("offer", { roomId: rId, sdp: offer });
     }
-  }, [cleanupPeerConnection, iceServers]);
+  }, [cleanupPeerConnection]);
 
   // --- Effects ---
 
@@ -190,7 +202,15 @@ const Chat = () => {
           audio: true,
         };
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (innerErr) {
+          console.warn("Preferred constraints failed, trying generic:", innerErr);
+          // Fallback: try generic video/audio without specific device or facingMode
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        }
+
         localStreamRef.current = stream;
         setLocalStream(stream);
 

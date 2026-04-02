@@ -117,7 +117,14 @@ const Landing = () => {
           audio: true,
         };
 
-        const userStream = await navigator.mediaDevices.getUserMedia(constraints);
+        let userStream;
+        try {
+          userStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (innerErr) {
+          console.warn("Preferred constraints failed, trying generic:", innerErr);
+          userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        }
+
         streamRef.current = userStream;
 
         // Save current device ID
