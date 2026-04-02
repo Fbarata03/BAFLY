@@ -8,6 +8,7 @@ const VideoGrid = ({
   remoteVideoRef, 
   status, 
   onlineCount,
+  queueCount,
   localCountryCode, 
   remoteCountryCode,
   remoteVideoActive,
@@ -25,7 +26,7 @@ const VideoGrid = ({
             <p className="placeholder-text">
               {status === 'searching' ? (
                 <>
-                  Procurando alguém
+                  A procurar alguém
                   <span className="searching-dots" aria-hidden="true">
                     <span>.</span><span>.</span><span>.</span>
                   </span>
@@ -52,12 +53,12 @@ const VideoGrid = ({
                   style={{ width: 18, height: 14, borderRadius: 2 }} 
                 />
               )}
-              Connected
+              Conectado
             </>
           ) : (
             <>
               <span className="status-dot"></span>
-              Searching{typeof onlineCount === 'number' ? ` (${onlineCount})` : ''}
+              A procurar{typeof queueCount === 'number' ? ` (${queueCount})` : ''}
             </>
           )}
         </div>

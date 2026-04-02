@@ -25,6 +25,7 @@ const API_URL =
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
   const [onlineCount, setOnlineCount] = useState(0);
+  const [queueCount, setQueueCount] = useState(0);
   const [peerConfig, setPeerConfig] = useState(ICE_SERVERS);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
@@ -263,6 +264,10 @@ const Chat = () => {
       .catch(() => {});
 
     socket.on("online_count", (count) => setOnlineCount(Number(count) || 0));
+    socket.on("status", (s) => {
+      if (s && typeof s.onlineCount === "number") setOnlineCount(Number(s.onlineCount) || 0);
+      if (s && typeof s.queueSize === "number") setQueueCount(Number(s.queueSize) || 0);
+    });
     const onConnect = () => {
       socket.emit("get_online_count");
       if (statusRef.current === "searching") emitJoinQueue();
@@ -411,6 +416,7 @@ const Chat = () => {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
       socket.off("online_count");
+      socket.off("status");
       socket.off("connect", onConnect);
       socket.off("waiting");
       socket.off("matched");
@@ -532,6 +538,7 @@ const Chat = () => {
           remoteVideoRef={remoteVideoRef}
           status={status}
           onlineCount={onlineCount}
+          queueCount={queueCount}
           localCountryCode={localCountryCode}
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}

@@ -207,6 +207,11 @@ let queue = []; // { socket, gender, country, joinedAt }
 
 // Stats tracking
 const getOnlineCount = () => io.engine?.clientsCount ?? 0;
+const getQueueSize = () => queue.filter((u) => u && u.socket && u.socket.connected && !u.socket.data?.inMatch).length;
+const broadcastStatus = () => {
+  io.emit('status', { onlineCount: getOnlineCount(), queueSize: getQueueSize() });
+  io.emit('online_count', getOnlineCount());
+};
 
 const FLEX_MS = 3000;
 
@@ -279,15 +284,18 @@ const attemptMatchAll = () => {
     otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
     db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(() => {});
   });
+
+  broadcastStatus();
 };
 
 setInterval(attemptMatchAll, 750);
 
 io.on('connection', async (socket) => {
-  io.emit('online_count', getOnlineCount());
+  broadcastStatus();
 
   socket.on('get_online_count', () => {
     socket.emit('online_count', getOnlineCount());
+    socket.emit('status', { onlineCount: getOnlineCount(), queueSize: getQueueSize() });
   });
   try {
     const ip = getIpFromHeaders(socket.handshake?.headers || {}) || normalizeIp(socket.handshake?.address);
@@ -306,6 +314,7 @@ io.on('connection', async (socket) => {
 
   const removeFromQueue = () => {
     queue = queue.filter(u => u.socket.id !== socket.id);
+    broadcastStatus();
   };
 
   const normalizeFilters = (data) => {
@@ -368,12 +377,13 @@ io.on('connection', async (socket) => {
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;
     removeFromQueue();
+    broadcastStatus();
     // User wants to find another match
     // Client should emit join_queue again after next
   });
 
   socket.on('disconnect', async () => {
-    io.emit('online_count', getOnlineCount());
+    broadcastStatus();
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;
     
@@ -438,9 +448,11 @@ io.on('connection', async (socket) => {
 
       // Log session to DB
       db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(console.error);
+      broadcastStatus();
     } else {
       queue.push(user);
       user.socket.emit('waiting');
+      broadcastStatus();
     }
   }
 });
