@@ -1,23 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './VideoGrid.css';
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
 
-const VideoGrid = ({ localVideoRef, remoteVideoRef, status, localCountryCode, remoteCountryCode }) => {
+const VideoGrid = ({ 
+  localVideoRef, 
+  remoteVideoRef, 
+  status, 
+  localCountryCode, 
+  remoteCountryCode,
+  remoteVideoActive 
+}) => {
   return (
     <div className="video-grid">
       <div className="video-container stranger">
-        {status === 'searching' || (status === 'connected' && !remoteVideoRef.current?.srcObject) ? (
+        {(status === 'searching' || (status === 'connected' && !remoteVideoActive)) && (
           <div className="video-placeholder">
             <div className="spinner"></div>
             <p>{status === 'searching' ? 'Procurando alguém...' : 'Conectando vídeo...'}</p>
           </div>
-        ) : null}
+        )}
         <video 
           ref={remoteVideoRef} 
           autoPlay 
           playsInline 
-          className={`remote-video ${status !== 'connected' ? 'hidden' : ''}`} 
+          className={`remote-video ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`} 
         />
         <div className="video-label">
           {remoteCountryCode ? <img className="video-flag" src={flagUrl(remoteCountryCode)} alt={remoteCountryCode} /> : null}

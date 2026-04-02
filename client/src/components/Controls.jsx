@@ -1,7 +1,17 @@
 import React from 'react';
 import './Controls.css';
 
-const Controls = ({ onNext, onStop, onMute, onVideoOff, onSwitchCamera, hasMultipleCameras, isMuted, isVideoOff }) => {
+const Controls = ({ 
+  onNext, 
+  onStop, 
+  onMute, 
+  onVideoOff, 
+  onSwitchCamera, 
+  onReport,
+  hasMultipleCameras, 
+  isMuted, 
+  isVideoOff 
+}) => {
   return (
     <div className="controls-bar">
       <button className="ctrl-btn mute" onClick={onMute} title={isMuted ? "Unmute" : "Mute"}>
