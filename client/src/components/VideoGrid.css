@@ -114,6 +114,27 @@
   color: #a0a0a0;
 }
 
+.placeholder-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.searching-dots span {
+  display: inline-block;
+  opacity: 0.2;
+  animation: baflyDot 1.2s infinite;
+}
+
+.searching-dots span:nth-child(2) { animation-delay: 0.2s; }
+.searching-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes baflyDot {
+  0%, 20% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
 .placeholder-icon-circle {
   width: 120px;
   height: 120px;

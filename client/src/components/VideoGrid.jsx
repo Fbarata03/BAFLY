@@ -7,6 +7,7 @@ const VideoGrid = ({
   localVideoRef, 
   remoteVideoRef, 
   status, 
+  onlineCount,
   localCountryCode, 
   remoteCountryCode,
   remoteVideoActive,
@@ -22,7 +23,14 @@ const VideoGrid = ({
               <span className="material-icons">videocam</span>
             </div>
             <p className="placeholder-text">
-              {status === 'searching' ? 'Procurando alguém...' : 'Conectando vídeo...'}
+              {status === 'searching' ? (
+                <>
+                  Procurando alguém
+                  <span className="searching-dots" aria-hidden="true">
+                    <span>.</span><span>.</span><span>.</span>
+                  </span>
+                </>
+              ) : 'Conectando vídeo...'}
             </p>
           </div>
         )}
@@ -49,7 +57,7 @@ const VideoGrid = ({
           ) : (
             <>
               <span className="status-dot"></span>
-              Searching...
+              Searching{typeof onlineCount === 'number' ? ` (${onlineCount})` : ''}
             </>
           )}
         </div>

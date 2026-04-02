@@ -179,7 +179,7 @@ app.get('/api/geo/me', async (req, res) => {
 let queue = []; // { socket, gender, country, joinedAt }
 
 // Stats tracking
-let onlineCount = 0;
+const getOnlineCount = () => io.engine?.clientsCount ?? 0;
 
 app.get('/api/health/matchmaking', (req, res) => {
   const now = Date.now();
@@ -196,15 +196,14 @@ app.get('/api/health/matchmaking', (req, res) => {
   }, {});
 
   return res.json({
-    onlineCount,
+    onlineCount: getOnlineCount(),
     queueSize: items.length,
     byCountry
   });
 });
 
 io.on('connection', async (socket) => {
-  onlineCount++;
-  io.emit('online_count', onlineCount);
+  io.emit('online_count', getOnlineCount());
   try {
     const ip = getIpFromHeaders(socket.handshake?.headers || {}) || normalizeIp(socket.handshake?.address);
     const geo = await lookupGeoByIp(ip);
@@ -289,8 +288,7 @@ io.on('connection', async (socket) => {
   });
 
   socket.on('disconnect', async () => {
-    onlineCount--;
-    io.emit('online_count', onlineCount);
+    io.emit('online_count', getOnlineCount());
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;
     
@@ -327,7 +325,7 @@ io.on('connection', async (socket) => {
       if (other.socket.id === user.socket.id) return false;
       
       const timeInQueue = now - other.joinedAt;
-      const isFlexible = timeInQueue > 10000; // 10s flex
+      const isFlexible = timeInQueue > 3000;
 
       if (isFlexible) return true; // Match anything if they've been waiting > 10s
 

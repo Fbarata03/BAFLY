@@ -18,6 +18,7 @@ const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === "l
 
 const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
+  const [onlineCount, setOnlineCount] = useState(0);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
   const [localCountryCode, setLocalCountryCode] = useState(null);
@@ -164,6 +165,7 @@ const Chat = () => {
     document.body.style.overscrollBehavior = "none";
 
     socket.connect();
+    socket.on("online_count", (count) => setOnlineCount(Number(count) || 0));
     
     // User info
     const u = localStorage.getItem("auth_user");
@@ -317,6 +319,7 @@ const Chat = () => {
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
+      socket.off("online_count");
       socket.off("waiting");
       socket.off("matched");
       socket.off("offer");
@@ -436,6 +439,7 @@ const Chat = () => {
           localVideoRef={localVideoRef}
           remoteVideoRef={remoteVideoRef}
           status={status}
+          onlineCount={onlineCount}
           localCountryCode={localCountryCode}
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}
