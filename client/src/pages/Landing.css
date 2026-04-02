@@ -487,13 +487,39 @@
 }
 
 @media (max-width: 768px) {
+  .landing-page {
+    padding: 16px;
+    justify-content: flex-start;
+  }
+
+  .landing-header {
+    padding: 14px 16px;
+  }
+
+  .logo {
+    font-size: 1.6rem;
+  }
+
+  .auth-link {
+    font-size: 0.8rem;
+    gap: 10px;
+  }
+
+  .landing-main {
+    padding-top: 92px;
+    gap: 24px;
+  }
+
   .tagline {
-    font-size: 2rem;
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
+    line-height: 1.05;
   }
   
   .filters-container {
     flex-direction: column;
     width: 100%;
+    gap: 14px;
+    padding: 16px 18px;
   }
   
   .filter-group select {
