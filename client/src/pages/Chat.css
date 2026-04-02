@@ -28,6 +28,10 @@
 }
 
 @media (max-width: 768px) {
+  .chat-page {
+    min-height: 100dvh;
+  }
+
   .chat-header {
     height: 56px;
     padding: 0 12px;

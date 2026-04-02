@@ -13,7 +13,7 @@
   .controls-bar {
     height: calc(72px + env(safe-area-inset-bottom));
     gap: 8px;
-    padding: 0 10px env(safe-area-inset-bottom);
+    padding: 0 10px calc(env(safe-area-inset-bottom) + 14px);
   }
 
   .ctrl-btn {
