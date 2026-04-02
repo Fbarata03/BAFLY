@@ -33,6 +33,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
 
+// Health check
+app.get('/healthz', (req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute

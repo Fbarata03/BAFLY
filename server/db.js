@@ -3,6 +3,27 @@ require('dotenv').config();
 
 let pool;
 
+const fromDatabaseUrl = () => {
+  const url = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const params = u.searchParams;
+    const host = u.hostname;
+    const port = u.port ? Number(u.port) : 3306;
+    const user = decodeURIComponent(u.username || '');
+    const password = decodeURIComponent(u.password || '');
+    const database = (u.pathname || '').replace(/^\//, '') || process.env.DB_NAME || 'defaultdb';
+    const sslMode = (params.get('ssl-mode') || params.get('sslmode') || '').toUpperCase();
+    if (sslMode === 'REQUIRED' && !process.env.DB_SSL_MODE) {
+      process.env.DB_SSL_MODE = 'REQUIRED';
+    }
+    return { host, port, user, password, database };
+  } catch {
+    return null;
+  }
+};
+
 const buildSslConfig = () => {
   const mustSSL = String(process.env.DB_SSL_MODE || '').toUpperCase() === 'REQUIRED' || String(process.env.DB_SSL || '').toLowerCase() === 'true';
   if (!mustSSL) return undefined;
@@ -39,12 +60,17 @@ const initPool = async () => {
       }
     }
 
-    pool = mysql.createPool({
+    const urlCfg = fromDatabaseUrl();
+    const cfg = urlCfg || {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
+    };
+
+    pool = mysql.createPool({
+      ...cfg,
       ssl,
       waitForConnections: true,
       connectionLimit: 10,
