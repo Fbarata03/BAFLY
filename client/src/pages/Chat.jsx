@@ -47,6 +47,8 @@ const Chat = () => {
   const localStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const iceRestartedRef = useRef(false);
+  const statusRef = useRef("searching");
+  const startedRef = useRef(false);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
@@ -162,6 +164,10 @@ const Chat = () => {
     }
   }, [localStream]);
 
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -198,7 +204,7 @@ const Chat = () => {
     socket.on("online_count", (count) => setOnlineCount(Number(count) || 0));
     const onConnect = () => {
       socket.emit("get_online_count");
-      if (status === "searching") emitJoinQueue();
+      if (statusRef.current === "searching") emitJoinQueue();
     };
     socket.on("connect", onConnect);
     socket.connect();
@@ -232,6 +238,8 @@ const Chat = () => {
 
     const startChat = async (deviceId = null) => {
       try {
+        if (startedRef.current) return;
+        startedRef.current = true;
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           alert("O teu navegador não suporta acesso à câmara.");
           navigate("/");
@@ -371,7 +379,7 @@ const Chat = () => {
       document.body.style.overflow = prevBodyOverflow;
       document.body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [navigate, initPeerConnection, cleanupPeerConnection, emitJoinQueue, status]);
+  }, [navigate, initPeerConnection, cleanupPeerConnection, emitJoinQueue]);
 
   // --- Handlers ---
 
