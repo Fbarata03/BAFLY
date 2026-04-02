@@ -220,12 +220,29 @@ io.on('connection', async (socket) => {
     console.error("DB Online status error", e);
   }
 
+  const removeFromQueue = () => {
+    queue = queue.filter(u => u.socket.id !== socket.id);
+  };
+
+  const normalizeFilters = (data) => {
+    const rawGender = data && typeof data.gender === 'string' ? data.gender : 'Any';
+    const rawCountry = data && typeof data.country === 'string' ? data.country : 'Any';
+    const gender = String(rawGender).trim() || 'Any';
+    const c = String(rawCountry).trim() || 'Any';
+    const country = c !== 'Any' && c.length === 2 ? c.toUpperCase() : c;
+    return { gender, country };
+  };
+
   socket.on('join_queue', async (data) => {
     // Check if banned
     const isBanned = await checkBan(socket);
     if (isBanned) return;
 
-    const { gender, country } = data;
+    if (socket.data?.inMatch) return;
+
+    removeFromQueue();
+
+    const { gender, country } = normalizeFilters(data);
     const newUser = {
       socket,
       gender,
@@ -265,6 +282,8 @@ io.on('connection', async (socket) => {
 
   socket.on('next', () => {
     handleDisconnectFromRoom(socket);
+    socket.data.inMatch = false;
+    removeFromQueue();
     // User wants to find another match
     // Client should emit join_queue again after next
   });
@@ -273,6 +292,7 @@ io.on('connection', async (socket) => {
     onlineCount--;
     io.emit('online_count', onlineCount);
     handleDisconnectFromRoom(socket);
+    socket.data.inMatch = false;
     
     // Remove from DB online tracking
     try {
@@ -282,7 +302,7 @@ io.on('connection', async (socket) => {
     }
     
     // Remove from queue if present
-    queue = queue.filter(u => u.socket.id !== socket.id);
+    removeFromQueue();
   });
 
   function handleDisconnectFromRoom(socket) {
@@ -291,6 +311,7 @@ io.on('connection', async (socket) => {
       if (room !== socket.id) {
         socket.to(room).emit('stranger_disconnected');
         socket.leave(room);
+        socket.data.inMatch = false;
         
         // Update session in DB
         db.query('UPDATE sessions SET ended_at = CURRENT_TIMESTAMP, end_reason = $1 WHERE room_id = $2 AND ended_at IS NULL', ['disconnected', room]).catch(console.error);
@@ -323,6 +344,11 @@ io.on('connection', async (socket) => {
       
       user.socket.join(roomId);
       otherUser.socket.join(roomId);
+
+      user.socket.data.inMatch = true;
+      otherUser.socket.data.inMatch = true;
+
+      queue = queue.filter(u => u.socket.id !== user.socket.id && u.socket.id !== otherUser.socket.id);
 
       user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null });
       otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
