@@ -3,6 +3,10 @@
   publish = "dist"
   command = "npm install && npm run build"
 
+[build.environment]
+  VITE_API_URL = "https://bafly-server.onrender.com"
+  VITE_SOCKET_URL = "https://bafly-server.onrender.com"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
