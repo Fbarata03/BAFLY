@@ -26,7 +26,6 @@ const Chat = () => {
   const [status, setStatus] = useState("searching"); // 'searching', 'connected', 'disconnected'
   const [onlineCount, setOnlineCount] = useState(0);
   const [queueCount, setQueueCount] = useState(0);
-  const [peerConfig, setPeerConfig] = useState(ICE_SERVERS);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
   const [localCountryCode, setLocalCountryCode] = useState(null);
@@ -39,7 +38,8 @@ const Chat = () => {
   const [roomId, setRoomId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
-  
+
+  const peerConfigRef = useRef(ICE_SERVERS);
   const roomIdRef = useRef(null);
   const pendingMessagesRef = useRef([]);
   const pendingSignalingRef = useRef([]);
@@ -169,7 +169,7 @@ const Chat = () => {
       return;
     }
 
-    const pc = new RTCPeerConnection(peerConfig);
+    const pc = new RTCPeerConnection(peerConfigRef.current);
     peerConnectionRef.current = pc;
 
     localStreamRef.current.getTracks().forEach((track) => {
@@ -214,7 +214,7 @@ const Chat = () => {
     }
 
     processSignalingQueue();
-  }, [cleanupPeerConnection, peerConfig]);
+  }, [cleanupPeerConnection]);
 
   // --- Effects ---
 
@@ -258,7 +258,7 @@ const Chat = () => {
       .then((r) => r.json().catch(() => null))
       .then((d) => {
         if (d?.iceServers && Array.isArray(d.iceServers) && d.iceServers.length) {
-          setPeerConfig({ iceServers: d.iceServers });
+          peerConfigRef.current = { iceServers: d.iceServers };
         }
       })
       .catch(() => {});
