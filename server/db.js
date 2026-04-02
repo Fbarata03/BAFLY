@@ -3,26 +3,49 @@ require('dotenv').config();
 
 let pool;
 
+const buildSslConfig = () => {
+  const mustSSL = String(process.env.DB_SSL_MODE || '').toUpperCase() === 'REQUIRED' || String(process.env.DB_SSL || '').toLowerCase() === 'true';
+  if (!mustSSL) return undefined;
+
+  const caBase64 = process.env.DB_SSL_CA_BASE64;
+  const caPlain = process.env.DB_SSL_CA;
+  let ca;
+  if (caBase64) {
+    try { ca = Buffer.from(caBase64, 'base64').toString('utf8'); } catch {}
+  } else if (caPlain) {
+    ca = String(caPlain).replace(/\\n/g, '\n');
+  }
+  return ca ? { ca, rejectUnauthorized: true, minVersion: 'TLSv1.2' } : { rejectUnauthorized: false, minVersion: 'TLSv1.2' };
+};
+
 const initPool = async () => {
   if (!pool) {
-    // First connect without DB to create it if not exists
-    const tempConn = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS
-    });
+    const ssl = buildSslConfig();
 
-    await tempConn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
-    await tempConn.end();
+    const shouldCreateDb = String(process.env.DB_CREATE_IF_NOT_EXISTS || '').toLowerCase() === 'true';
+    if (shouldCreateDb) {
+      try {
+        const tempConn = await mysql.createConnection({
+          host: process.env.DB_HOST,
+          port: process.env.DB_PORT,
+          user: process.env.DB_USER,
+          password: process.env.DB_PASS,
+          ssl
+        });
+        await tempConn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
+        await tempConn.end();
+      } catch (e) {
+        // Ignore create errors (cloud providers often restrict CREATE DATABASE)
+      }
+    }
 
-    // Now create the pool with the DB
     pool = mysql.createPool({
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
+      ssl,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
@@ -33,7 +56,6 @@ const initPool = async () => {
 
 module.exports = {
   query: async (text, params) => {
-    // Convert $1, $2... to ? for MySQL
     const mysqlText = text.replace(/\$\d+/g, '?');
     const p = await initPool();
     const [rows] = await p.execute(mysqlText, params);
