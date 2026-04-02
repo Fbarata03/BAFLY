@@ -414,15 +414,6 @@ const Landing = () => {
       <div className="preview-container">
         <video ref={videoRef} autoPlay muted playsInline />
         <div className="preview-label">A TUA CÂMARA</div>
-        {hasMultipleCameras && (
-          <button 
-            className="switch-camera-btn" 
-            onClick={handleSwitchCamera}
-            title="Trocar Câmara"
-          >
-            🔄 TROCAR
-          </button>
-        )}
       </div>
     </div>
   );

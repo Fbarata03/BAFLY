@@ -524,27 +524,6 @@
   text-transform: uppercase;
 }
 
-.switch-camera-btn {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  background: rgba(0, 255, 136, 0.2);
-  border: 1px solid var(--neon-green);
-  color: var(--neon-green);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.3s;
-  backdrop-filter: blur(5px);
-}
-
-.switch-camera-btn:hover {
-  background: var(--neon-green);
-  color: #000;
-}
-
 @media (max-width: 768px) {
   .tagline {
     font-size: 2rem;

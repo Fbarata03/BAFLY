@@ -30,6 +30,8 @@ const Chat = () => {
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
   
   const roomIdRef = useRef(null);
+  const pendingMessagesRef = useRef([]);
+  const pendingHintShownRef = useRef(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -250,6 +252,15 @@ const Chat = () => {
       if (data?.partnerGeo?.countryCode) setRemoteCountryCode(String(data.partnerGeo.countryCode).toUpperCase());
 
       initPeerConnection(role, matchedRoomId);
+
+      const pending = pendingMessagesRef.current;
+      if (pending.length) {
+        pending.forEach((text) => {
+          socket.emit("message", { roomId: matchedRoomId, text });
+        });
+        pendingMessagesRef.current = [];
+        pendingHintShownRef.current = false;
+      }
     });
 
     socket.on("offer", async (data) => {
@@ -304,9 +315,15 @@ const Chat = () => {
   // --- Handlers ---
 
   const sendMessage = (text) => {
+    setMessages((prev) => [...prev, { type: "me", text }]);
     if (status === "connected" && roomIdRef.current) {
       socket.emit("message", { roomId: roomIdRef.current, text });
-      setMessages((prev) => [...prev, { type: "me", text }]);
+      return;
+    }
+    pendingMessagesRef.current = [...pendingMessagesRef.current, text];
+    if (!pendingHintShownRef.current) {
+      pendingHintShownRef.current = true;
+      setMessages((prev) => [...prev, { type: "system", text: "A mensagem vai ser enviada quando conectar." }]);
     }
   };
 
@@ -407,7 +424,7 @@ const Chat = () => {
         <ChatBox
           messages={messages}
           onSendMessage={sendMessage}
-          disabled={status !== "connected"}
+          disabled={false}
         />
       </div>
 

@@ -16,7 +16,7 @@
   }
 
   .local-video-floating {
-    width: clamp(72px, 20vw, 104px);
+    width: clamp(64px, 18vw, 96px);
     height: auto;
     aspect-ratio: 3 / 4;
     bottom: calc(8px + env(safe-area-inset-bottom));
@@ -44,7 +44,7 @@
 
 @media (max-width: 768px) and (orientation: landscape) {
   .local-video-floating {
-    width: clamp(64px, 16vw, 92px);
+    width: clamp(56px, 14vw, 84px);
   }
 }
 

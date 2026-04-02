@@ -53,7 +53,7 @@ const ChatBox = ({ messages, onSendMessage, disabled }) => {
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={disabled ? "Aguarda..." : "Escreve uma mensagem..."}
           disabled={disabled}
         />
         <button type="submit" className="send-btn" disabled={disabled || !inputValue.trim()}>
