@@ -1,0 +1,56 @@
+:root {
+  --bg-color: #080c10;
+  --neon-green: #00ff88;
+  --neon-blue: #00aaff;
+  --text-white: #ffffff;
+  --text-gray: #a0a0a0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-white);
+  font-family: 'Syne', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+input, select, textarea {
+  font-family: 'Syne', sans-serif;
+}
+
+code, pre {
+  font-family: 'Space Mono', monospace;
+}
+
+.app-container {
+  min-height: 100vh;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080c10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a2530;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3540;
+}
