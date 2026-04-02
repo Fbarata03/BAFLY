@@ -213,6 +213,10 @@ const Chat = () => {
 
         localStreamRef.current = stream;
         setLocalStream(stream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(() => {});
+        }
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
@@ -398,6 +402,7 @@ const Chat = () => {
           localCountryCode={localCountryCode}
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}
+          localVideoActive={!!localStream}
         />
         <ChatBox
           messages={messages}

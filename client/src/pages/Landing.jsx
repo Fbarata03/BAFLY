@@ -237,7 +237,21 @@ const Landing = () => {
     }
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    try {
+      if (simple) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert("O teu navegador não suporta acesso à câmara.");
+          return;
+        }
+        const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        permStream.getTracks().forEach((t) => t.stop());
+      }
+    } catch (err) {
+      alert("Ativa a câmara para começar.");
+      return;
+    }
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;

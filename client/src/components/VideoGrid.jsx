@@ -9,7 +9,8 @@ const VideoGrid = ({
   status, 
   localCountryCode, 
   remoteCountryCode,
-  remoteVideoActive 
+  remoteVideoActive,
+  localVideoActive
 }) => {
   return (
     <div className="video-main-area">
@@ -66,7 +67,7 @@ const VideoGrid = ({
           <div className="label-you">YOU</div>
           
           {/* If no video yet */}
-          {!localVideoRef.current?.srcObject && (
+          {!localVideoActive && (
              <div className="local-placeholder-overlay">
                 <span className="material-icons">videocam</span>
                 <p>Your Camera</p>
