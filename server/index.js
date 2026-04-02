@@ -181,6 +181,8 @@ let queue = []; // { socket, gender, country, joinedAt }
 // Stats tracking
 const getOnlineCount = () => io.engine?.clientsCount ?? 0;
 
+const FLEX_MS = 3000;
+
 app.get('/api/health/matchmaking', (req, res) => {
   const now = Date.now();
   const items = queue.map((u) => ({
@@ -201,6 +203,58 @@ app.get('/api/health/matchmaking', (req, res) => {
     byCountry
   });
 });
+
+const canMatch = (a, b, now) => {
+  const timeA = now - (a.joinedAt || now);
+  const timeB = now - (b.joinedAt || now);
+  const flexible = timeA > FLEX_MS || timeB > FLEX_MS;
+  const genderMatch = flexible || a.gender === 'Any' || b.gender === 'Any' || a.gender === b.gender;
+  const countryMatch = flexible || a.country === 'Any' || b.country === 'Any' || a.country === b.country;
+  return genderMatch && countryMatch;
+};
+
+const attemptMatchAll = () => {
+  if (queue.length < 2) return;
+  const now = Date.now();
+  queue = queue.filter((u) => u && u.socket && u.socket.connected);
+  queue.sort((x, y) => (x.joinedAt || now) - (y.joinedAt || now));
+
+  const used = new Set();
+  const pairs = [];
+  for (let i = 0; i < queue.length; i++) {
+    if (used.has(i)) continue;
+    for (let j = i + 1; j < queue.length; j++) {
+      if (used.has(j)) continue;
+      if (canMatch(queue[i], queue[j], now)) {
+        used.add(i);
+        used.add(j);
+        pairs.push([queue[i], queue[j]]);
+        break;
+      }
+    }
+  }
+
+  if (!pairs.length) return;
+
+  const keep = [];
+  for (let i = 0; i < queue.length; i++) {
+    if (!used.has(i)) keep.push(queue[i]);
+  }
+  queue = keep;
+
+  pairs.forEach(([user, otherUser]) => {
+    const roomId = `room_${user.socket.id}_${otherUser.socket.id}`;
+    user.socket.join(roomId);
+    otherUser.socket.join(roomId);
+    user.socket.data.inMatch = true;
+    otherUser.socket.data.inMatch = true;
+    user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null });
+    otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
+    db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(() => {});
+  });
+};
+
+setInterval(attemptMatchAll, 750);
 
 io.on('connection', async (socket) => {
   io.emit('online_count', getOnlineCount());
@@ -356,6 +410,7 @@ io.on('connection', async (socket) => {
     } else {
       queue.push(user);
       user.socket.emit('waiting');
+      attemptMatchAll();
     }
   }
 });
