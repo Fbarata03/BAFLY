@@ -38,6 +38,34 @@ app.get('/healthz', (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
 });
 
+const safeDbError = (e) => {
+  const code = e && (e.code || e.errno || e.sqlState) ? String(e.code || e.errno || e.sqlState) : null;
+  const message = e && e.message ? String(e.message) : null;
+  const cleanMessage = message ? message.replace(/(mysql:\/\/)([^@]+)(@)/gi, '$1***$3') : null;
+  return {
+    code,
+    message: cleanMessage ? cleanMessage.slice(0, 280) : null
+  };
+};
+
+app.get('/api/health/db', async (req, res) => {
+  try {
+    await db.query('SELECT 1 as ok', []);
+    return res.json({
+      ok: true,
+      hasDatabaseUrl: !!(process.env.DATABASE_URL || process.env.MYSQL_URL),
+      sslMode: process.env.DB_SSL_MODE || null
+    });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      hasDatabaseUrl: !!(process.env.DATABASE_URL || process.env.MYSQL_URL),
+      sslMode: process.env.DB_SSL_MODE || null,
+      error: safeDbError(e)
+    });
+  }
+});
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
