@@ -62,7 +62,7 @@ const VideoGrid = ({
           ) : (
             <>
               <span className="status-dot"></span>
-              A procurar{typeof queueCount === 'number' ? ` (${queueCount})` : ''}
+              A procurar
             </>
           )}
         </div>

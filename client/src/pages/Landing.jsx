@@ -158,11 +158,6 @@ const Landing = () => {
             <span className="online-dot"></span>
             {onlineCount.toLocaleString()} online agora
           </div>
-          <div className="online-pill" style={{ marginTop: 10, opacity: 0.9 }}>
-            <span className="online-dot"></span>
-            {queueCount.toLocaleString()} a procurar agora
-          </div>
-          
           <div className="auth-actions">
             <button className="btn primary" onClick={() => setSimple(false)}>
               Começar Agora
@@ -206,9 +201,7 @@ const Landing = () => {
       <main className="landing-main">
         <h1 className="tagline">Meet strangers. No filters. Just vibes.</h1>
         <OnlineBadge count={onlineCount} />
-        <div style={{ marginTop: 10, color: 'var(--text-gray)' }}>
-          {queueCount.toLocaleString()} a procurar agora
-        </div>
+
 
         <div className="filters-container">
           <div className="filter-group">
