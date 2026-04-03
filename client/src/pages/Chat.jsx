@@ -39,8 +39,8 @@ const Chat = () => {
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
   const [remoteIsMuted, setRemoteIsMuted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 900px)").matches);
+  const [isChatOpen, setIsChatOpen] = useState(() => !window.matchMedia("(max-width: 900px)").matches);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const peerConfigRef = useRef(ICE_SERVERS);
@@ -56,8 +56,8 @@ const Chat = () => {
   const iceRestartedRef = useRef(false);
   const statusRef = useRef("searching");
   const startedRef = useRef(false);
-  const isMobileRef = useRef(false);
-  const isChatOpenRef = useRef(false);
+  const isMobileRef = useRef(window.matchMedia("(max-width: 900px)").matches);
+  const isChatOpenRef = useRef(!window.matchMedia("(max-width: 900px)").matches);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
