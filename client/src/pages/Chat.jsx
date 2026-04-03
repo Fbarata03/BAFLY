@@ -190,6 +190,24 @@ const Chat = () => {
       pc.addTrack(track, localStreamRef.current);
     });
 
+    try {
+      const senders = pc.getSenders();
+      const videoSender = senders.find((s) => s.track && s.track.kind === "video");
+      if (videoSender && videoSender.getParameters) {
+        const p = videoSender.getParameters();
+        if (!p.encodings || !p.encodings.length) p.encodings = [{}];
+        p.encodings[0] = { ...(p.encodings[0] || {}), maxBitrate: 1500000, maxFramerate: 30 };
+        await videoSender.setParameters(p);
+      }
+      const audioSender = senders.find((s) => s.track && s.track.kind === "audio");
+      if (audioSender && audioSender.getParameters) {
+        const p = audioSender.getParameters();
+        if (!p.encodings || !p.encodings.length) p.encodings = [{}];
+        p.encodings[0] = { ...(p.encodings[0] || {}), maxBitrate: 64000 };
+        await audioSender.setParameters(p);
+      }
+    } catch {}
+
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
@@ -374,8 +392,24 @@ const Chat = () => {
         }
 
         const constraints = {
-          video: targetDeviceId ? { deviceId: { exact: targetDeviceId } } : { facingMode: 'user' },
-          audio: true,
+          video: targetDeviceId
+            ? {
+                deviceId: { exact: targetDeviceId },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                frameRate: { ideal: 30, max: 30 },
+              }
+            : {
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                frameRate: { ideal: 30, max: 30 },
+              },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
         };
 
         let stream;
@@ -396,6 +430,7 @@ const Chat = () => {
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
+          try { videoTrack.contentHint = "motion"; } catch {}
           setCurrentCameraId(videoTrack.getSettings().deviceId);
         }
 
@@ -546,11 +581,19 @@ const Chat = () => {
 
         // Only request video — keep existing audio track alive in the peer connection
         const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: nextDeviceId } },
+          video: {
+            deviceId: { exact: nextDeviceId },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 30 },
+          },
           audio: false,
         });
 
         const newVideoTrack = videoStream.getVideoTracks()[0];
+        if (newVideoTrack) {
+          try { newVideoTrack.contentHint = "motion"; } catch {}
+        }
 
         // Replace in peer connection without renegotiation
         if (peerConnectionRef.current) {

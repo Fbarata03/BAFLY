@@ -9,7 +9,7 @@
   padding: 0 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .controls-bar {
     height: calc(70px + env(safe-area-inset-bottom));
     gap: 8px;

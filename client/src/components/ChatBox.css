@@ -16,7 +16,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: clamp(200px, 38dvh, 340px);
+    height: clamp(220px, 46dvh, 420px);
     min-height: 0;
     max-height: none;
     border-left: none;
@@ -92,7 +92,7 @@
 
 @media (max-width: 900px) and (orientation: landscape) {
   .chat-sidebar {
-    height: clamp(160px, 55dvh, 280px);
+    height: clamp(180px, 62dvh, 320px);
   }
 
   .chat-sidebar-header {
@@ -111,7 +111,7 @@
 
 @media (max-width: 375px) {
   .chat-sidebar {
-    height: clamp(200px, 40dvh, 320px);
+    height: clamp(200px, 48dvh, 360px);
   }
 
   .msg-bubble {
@@ -121,6 +121,12 @@
   .chat-input-area input {
     font-size: 0.78rem;
     padding: 7px 10px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 600px) {
+  .chat-sidebar {
+    height: clamp(180px, 56dvh, 300px);
   }
 }
 
