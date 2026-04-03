@@ -14,10 +14,11 @@ const VideoGrid = ({
   remoteVideoActive,
   localVideoActive,
   isMuted,
-  remoteIsMuted
+  remoteIsMuted,
+  onTap
 }) => {
   return (
-    <div className="video-main-area">
+    <div className="video-main-area" onClick={onTap}>
       {/* Stranger Video (Background/Main) */}
       <div className="remote-video-wrapper">
         {(status === 'searching' || status === 'disconnected' || (status === 'connected' && !remoteVideoActive)) && (

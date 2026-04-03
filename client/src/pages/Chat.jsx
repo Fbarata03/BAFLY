@@ -618,27 +618,19 @@ const Chat = () => {
           localVideoActive={!!localStream}
           isMuted={isMuted}
           remoteIsMuted={remoteIsMuted}
+          onTap={isMobile ? () => setIsChatOpen(prev => !prev) : undefined}
         />
-        {isMobile && !isChatOpen ? (
-          <button
-            type="button"
-            className="chat-open-btn"
-            onClick={() => setIsChatOpen(true)}
-            aria-label="Abrir chat"
-          >
-            <span className="material-icons">chat</span>
-            {unreadChatCount > 0 ? <span className="chat-open-badge">{unreadChatCount}</span> : null}
-          </button>
+        {isMobile && !isChatOpen && unreadChatCount > 0 ? (
+          <span className="chat-unread-dot">{unreadChatCount}</span>
         ) : null}
-        {!isMobile || isChatOpen ? (
-          <ChatBox
-            messages={messages}
-            onSendMessage={sendMessage}
-            disabled={false}
-            showClose={isMobile}
-            onClose={() => setIsChatOpen(false)}
-          />
-        ) : null}
+        <ChatBox
+          messages={messages}
+          onSendMessage={sendMessage}
+          disabled={false}
+          showClose={isMobile}
+          onClose={() => setIsChatOpen(false)}
+          isOpen={!isMobile || isChatOpen}
+        />
       </div>
 
       <Controls

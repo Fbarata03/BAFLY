@@ -106,6 +106,33 @@
   }
 }
 
+/* Unread messages dot (mobile) */
+.chat-unread-dot {
+  position: absolute;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: #00ff88;
+  color: #000;
+  font-weight: 800;
+  font-size: 0.72rem;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  pointer-events: none;
+  animation: dotPulse 1.5s infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
+}
+
 @media (max-width: 375px) {
   .chat-header {
     height: calc(50px + env(safe-area-inset-top));

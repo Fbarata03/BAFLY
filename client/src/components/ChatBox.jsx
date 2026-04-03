@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatBox.css';
 
-const ChatBox = ({ messages, onSendMessage, disabled }) => {
+const ChatBox = ({ messages, onSendMessage, disabled, onClose, showClose, isOpen }) => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -22,7 +22,7 @@ const ChatBox = ({ messages, onSendMessage, disabled }) => {
   };
 
   return (
-    <div className="chat-sidebar">
+    <div className={`chat-sidebar${isOpen ? ' chat-open' : ''}`} onClick={(e) => e.stopPropagation()}>
       <div className="chat-sidebar-header">
         <div className="chat-sidebar-icon">
            <span className="material-icons">chat_bubble_outline</span>
@@ -31,6 +31,11 @@ const ChatBox = ({ messages, onSendMessage, disabled }) => {
           <h3>Chat</h3>
           <p>Online</p>
         </div>
+        {showClose ? (
+          <button type="button" className="chat-close-btn" onClick={onClose} aria-label="Fechar chat">
+            <span className="material-icons">close</span>
+          </button>
+        ) : null}
       </div>
 
       <div className="chat-messages-container">
