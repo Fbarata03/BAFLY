@@ -382,6 +382,16 @@ io.on('connection', async (socket) => {
     db.query('INSERT INTO messages (room_id, text, sender_socket) VALUES ($1, $2, $3)', [roomId, text, socket.id]).catch(console.error);
   });
 
+  socket.on('camera_state', (data) => {
+    const { roomId, enabled } = data || {};
+    socket.to(roomId).emit('camera_state', { enabled: !!enabled });
+  });
+
+  socket.on('mic_state', (data) => {
+    const { roomId, enabled } = data || {};
+    socket.to(roomId).emit('mic_state', { enabled: !!enabled });
+  });
+
   socket.on('next', () => {
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;
