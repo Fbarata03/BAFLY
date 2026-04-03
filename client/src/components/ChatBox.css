@@ -124,11 +124,6 @@
   }
 }
 
-/* Drag handle hidden on desktop */
-.chat-drag-handle {
-  display: none;
-}
-
 .chat-sidebar-header {
   padding: 24px;
   display: flex;
