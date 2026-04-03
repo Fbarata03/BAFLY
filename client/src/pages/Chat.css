@@ -31,10 +31,10 @@
 .chat-open-btn {
   position: absolute;
   right: calc(14px + env(safe-area-inset-right));
-  bottom: calc(82px + env(safe-area-inset-bottom));
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: rgba(13, 17, 23, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
