@@ -18,10 +18,10 @@ const VideoGrid = ({
     <div className="video-main-area">
       {/* Stranger Video (Background/Main) */}
       <div className="remote-video-wrapper">
-        {(status === 'searching' || (status === 'connected' && !remoteVideoActive)) && (
+        {(status === 'searching' || status === 'disconnected' || (status === 'connected' && !remoteVideoActive)) && (
           <div className="video-placeholder-main">
             <div className="placeholder-icon-circle">
-              <span className="material-icons">videocam</span>
+              <span className="material-icons">{status === 'disconnected' ? 'person_off' : 'videocam'}</span>
             </div>
             <p className="placeholder-text">
               {status === 'searching' ? (
@@ -31,7 +31,11 @@ const VideoGrid = ({
                     <span>.</span><span>.</span><span>.</span>
                   </span>
                 </>
-              ) : 'Conectando vídeo...'}
+              ) : status === 'disconnected' ? (
+                'O estranho saiu. Clica NEXT para continuar.'
+              ) : (
+                'Conectando vídeo...'
+              )}
             </p>
           </div>
         )}

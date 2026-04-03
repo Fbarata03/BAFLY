@@ -40,6 +40,7 @@ const Chat = () => {
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
 
   const peerConfigRef = useRef(ICE_SERVERS);
+  const icePromiseRef = useRef(null);
   const roomIdRef = useRef(null);
   const pendingMessagesRef = useRef([]);
   const pendingSignalingRef = useRef([]);
@@ -169,6 +170,9 @@ const Chat = () => {
       return;
     }
 
+    // Wait for TURN servers to load before creating the peer connection
+    if (icePromiseRef.current) await icePromiseRef.current;
+
     const pc = new RTCPeerConnection({
       ...(peerConfigRef.current || ICE_SERVERS),
       iceTransportPolicy: window.location.hostname === "localhost" ? "all" : "relay",
@@ -257,7 +261,7 @@ const Chat = () => {
     document.body.style.overflow = "hidden";
     document.body.style.overscrollBehavior = "none";
 
-    fetch(`${API_URL}/api/webrtc/ice`)
+    icePromiseRef.current = fetch(`${API_URL}/api/webrtc/ice`)
       .then((r) => r.json().catch(() => null))
       .then((d) => {
         if (d?.iceServers && Array.isArray(d.iceServers) && d.iceServers.length) {
@@ -471,30 +475,35 @@ const Chat = () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      
+
       if (videoDevices.length > 1) {
         const currentIndex = videoDevices.findIndex(d => d.deviceId === currentCameraId);
         const nextIndex = (currentIndex + 1) % videoDevices.length;
         const nextDeviceId = videoDevices[nextIndex].deviceId;
-        
-        const constraints = {
-          video: { deviceId: { exact: nextDeviceId } },
-          audio: true
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        localStreamRef.current?.getTracks().forEach(track => track.stop());
-        localStreamRef.current = stream;
-        setLocalStream(stream);
-        setCurrentCameraId(nextDeviceId);
 
+        // Only request video — keep existing audio track alive in the peer connection
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: nextDeviceId } },
+          audio: false,
+        });
+
+        const newVideoTrack = videoStream.getVideoTracks()[0];
+
+        // Replace in peer connection without renegotiation
         if (peerConnectionRef.current) {
-          const videoTrack = stream.getVideoTracks()[0];
           const sender = peerConnectionRef.current.getSenders().find(s => s.track && s.track.kind === 'video');
-          if (sender) {
-            sender.replaceTrack(videoTrack);
-          }
+          if (sender) await sender.replaceTrack(newVideoTrack);
         }
+
+        // Swap only the video track in the existing stream
+        const oldVideoTrack = localStreamRef.current?.getVideoTracks()[0];
+        if (oldVideoTrack) {
+          oldVideoTrack.stop();
+          localStreamRef.current.removeTrack(oldVideoTrack);
+        }
+        localStreamRef.current.addTrack(newVideoTrack);
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+        setCurrentCameraId(nextDeviceId);
       }
     } catch (err) {
       console.error("Error switching camera:", err);
