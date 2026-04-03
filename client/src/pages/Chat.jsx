@@ -38,6 +38,10 @@ const Chat = () => {
   const [roomId, setRoomId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
+  const [remoteIsMuted, setRemoteIsMuted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const peerConfigRef = useRef(ICE_SERVERS);
   const icePromiseRef = useRef(null);
@@ -52,6 +56,8 @@ const Chat = () => {
   const iceRestartedRef = useRef(false);
   const statusRef = useRef("searching");
   const startedRef = useRef(false);
+  const isMobileRef = useRef(false);
+  const isChatOpenRef = useRef(false);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
@@ -150,6 +156,7 @@ const Chat = () => {
     setRoomId(null);
     roomIdRef.current = null;
     setRemoteCountryCode(null);
+    setRemoteIsMuted(false);
     pendingSignalingRef.current = [];
     emitJoinQueue();
   }, [cleanupPeerConnection, emitJoinQueue]);
@@ -236,6 +243,31 @@ const Chat = () => {
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const update = () => setIsMobile(!!mq.matches);
+    update();
+    if (mq.addEventListener) mq.addEventListener("change", update);
+    else mq.addListener(update);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", update);
+      else mq.removeListener(update);
+    };
+  }, []);
+
+  useEffect(() => {
+    isMobileRef.current = isMobile;
+    if (!isMobile) {
+      setIsChatOpen(true);
+      setUnreadChatCount(0);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    isChatOpenRef.current = isChatOpen;
+    if (isChatOpen) setUnreadChatCount(0);
+  }, [isChatOpen]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -408,12 +440,33 @@ const Chat = () => {
 
     socket.on("message", (data) => {
       setMessages((prev) => [...prev, { type: "stranger", text: data.text }]);
+      if (isMobileRef.current && !isChatOpenRef.current) {
+        setUnreadChatCount((c) => c + 1);
+      }
+    });
+
+    socket.on("camera_state", (data) => {
+      const enabled = !!data?.enabled;
+      setMessages((prev) => [
+        ...prev,
+        { type: "system", text: enabled ? "O estranho ligou a câmara" : "O estranho desligou a câmara" },
+      ]);
+    });
+
+    socket.on("mic_state", (data) => {
+      const enabled = !!data?.enabled;
+      setRemoteIsMuted(!enabled);
+      setMessages((prev) => [
+        ...prev,
+        { type: "system", text: enabled ? "O estranho ligou o microfone" : "O estranho desligou o microfone" },
+      ]);
     });
 
     socket.on("stranger_disconnected", () => {
       setStatus("disconnected");
       setMessages((prev) => [...prev, { type: "system", text: "O estranho saiu 👋" }]);
       setRemoteCountryCode(null);
+      setRemoteIsMuted(false);
       cleanupPeerConnection();
     });
 
@@ -431,6 +484,8 @@ const Chat = () => {
       socket.off("answer");
       socket.off("ice_candidate");
       socket.off("message");
+      socket.off("camera_state");
+      socket.off("mic_state");
       socket.off("stranger_disconnected");
       socket.disconnect();
 
@@ -460,6 +515,9 @@ const Chat = () => {
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
       setIsMuted(!audioTrack.enabled);
+      if (roomIdRef.current) {
+        socket.emit("mic_state", { roomId: roomIdRef.current, enabled: audioTrack.enabled });
+      }
     }
   };
 
@@ -468,6 +526,9 @@ const Chat = () => {
     if (videoTrack) {
       videoTrack.enabled = !videoTrack.enabled;
       setIsVideoOff(!videoTrack.enabled);
+      if (roomIdRef.current) {
+        socket.emit("camera_state", { roomId: roomIdRef.current, enabled: videoTrack.enabled });
+      }
     }
   };
 
@@ -555,12 +616,29 @@ const Chat = () => {
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}
           localVideoActive={!!localStream}
+          isMuted={isMuted}
+          remoteIsMuted={remoteIsMuted}
         />
-        <ChatBox
-          messages={messages}
-          onSendMessage={sendMessage}
-          disabled={false}
-        />
+        {isMobile && !isChatOpen ? (
+          <button
+            type="button"
+            className="chat-open-btn"
+            onClick={() => setIsChatOpen(true)}
+            aria-label="Abrir chat"
+          >
+            <span className="material-icons">chat</span>
+            {unreadChatCount > 0 ? <span className="chat-open-badge">{unreadChatCount}</span> : null}
+          </button>
+        ) : null}
+        {!isMobile || isChatOpen ? (
+          <ChatBox
+            messages={messages}
+            onSendMessage={sendMessage}
+            disabled={false}
+            showClose={isMobile}
+            onClose={() => setIsChatOpen(false)}
+          />
+        ) : null}
       </div>
 
       <Controls

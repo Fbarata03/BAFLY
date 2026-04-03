@@ -3,16 +3,18 @@ import './VideoGrid.css';
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
 
-const VideoGrid = ({ 
-  localVideoRef, 
-  remoteVideoRef, 
-  status, 
+const VideoGrid = ({
+  localVideoRef,
+  remoteVideoRef,
+  status,
   onlineCount,
   queueCount,
-  localCountryCode, 
+  localCountryCode,
   remoteCountryCode,
   remoteVideoActive,
-  localVideoActive
+  localVideoActive,
+  isMuted,
+  remoteIsMuted
 }) => {
   return (
     <div className="video-main-area">
@@ -71,6 +73,13 @@ const VideoGrid = ({
         <div className="label-stranger">
           STRANGER
         </div>
+
+        {/* Remote Mute Indicator */}
+        {remoteIsMuted && status === 'connected' && (
+          <div className="mute-indicator remote-mute">
+            <span className="material-icons">mic_off</span>
+          </div>
+        )}
       </div>
       
       {/* Your Video (Floating Overlay) */}
@@ -78,13 +87,16 @@ const VideoGrid = ({
         <div className="local-video-inner">
           <video ref={localVideoRef} autoPlay muted playsInline className="local-video-feed" />
           <div className="label-you">YOU</div>
-          
-          {/* If no video yet */}
+          {isMuted && (
+            <div className="mute-indicator local-mute">
+              <span className="material-icons">mic_off</span>
+            </div>
+          )}
           {!localVideoActive && (
-             <div className="local-placeholder-overlay">
-                <span className="material-icons">videocam</span>
-                <p>Your Camera</p>
-             </div>
+            <div className="local-placeholder-overlay">
+              <span className="material-icons">videocam</span>
+              <p>Your Camera</p>
+            </div>
           )}
         </div>
       </div>
