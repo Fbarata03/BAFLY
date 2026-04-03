@@ -175,7 +175,7 @@ const Chat = () => {
 
     const pc = new RTCPeerConnection({
       ...(peerConfigRef.current || ICE_SERVERS),
-      iceTransportPolicy: window.location.hostname === "localhost" ? "all" : "relay",
+      iceTransportPolicy: "all",
     });
     peerConnectionRef.current = pc;
 

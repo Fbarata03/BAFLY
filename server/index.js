@@ -121,13 +121,12 @@ const buildTurnIceServers = () => {
   }
 
   return [
-    { urls: 'turn:staticauth.openrelay.metered.ca:80', username, credential },
-    { urls: 'turn:staticauth.openrelay.metered.ca:80?transport=udp', username, credential },
-    { urls: 'turn:staticauth.openrelay.metered.ca:443', username, credential },
-    { urls: 'turn:staticauth.openrelay.metered.ca:443?transport=udp', username, credential },
-    { urls: 'turn:staticauth.openrelay.metered.ca:443?transport=tcp', username, credential },
-    { urls: 'turns:staticauth.openrelay.metered.ca:443', username, credential },
-    { urls: 'turns:staticauth.openrelay.metered.ca:443?transport=tcp', username, credential }
+    { urls: 'turn:openrelay.metered.ca:80',                      username, credential },
+    { urls: 'turn:openrelay.metered.ca:80?transport=udp',        username, credential },
+    { urls: 'turn:openrelay.metered.ca:443',                     username, credential },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp',       username, credential },
+    { urls: 'turns:openrelay.metered.ca:443',                    username, credential },
+    { urls: 'turns:openrelay.metered.ca:443?transport=tcp',      username, credential },
   ];
 };
 
