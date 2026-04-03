@@ -23,6 +23,9 @@ const ChatBox = ({ messages, onSendMessage, disabled, onClose, showClose, isOpen
 
   return (
     <div className={`chat-sidebar${isOpen ? ' chat-open' : ''}`} onClick={(e) => e.stopPropagation()}>
+      {showClose && (
+        <div className="chat-drag-handle" onClick={onClose} aria-label="Fechar chat" />
+      )}
       <div className="chat-sidebar-header">
         <div className="chat-sidebar-icon">
            <span className="material-icons">chat_bubble_outline</span>

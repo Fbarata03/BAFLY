@@ -16,25 +16,40 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: clamp(220px, 42dvh, 380px);
+    height: clamp(200px, 38dvh, 340px);
     min-height: 0;
     max-height: none;
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: none;
     background: #080c10;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.55);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7);
     z-index: 150;
     /* Slide-up animation */
     transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
   }
 
   .chat-sidebar.chat-open {
     transform: translateY(0);
     pointer-events: all;
+  }
+
+  /* Drag handle pill */
+  .chat-drag-handle {
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+    margin: 10px auto 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .chat-drag-handle:active {
+    background: rgba(255, 255, 255, 0.5);
   }
 
   .chat-sidebar-header {
@@ -107,6 +122,11 @@
     font-size: 0.78rem;
     padding: 7px 10px;
   }
+}
+
+/* Drag handle hidden on desktop */
+.chat-drag-handle {
+  display: none;
 }
 
 .chat-sidebar-header {

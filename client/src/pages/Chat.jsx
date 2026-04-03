@@ -261,6 +261,8 @@ const Chat = () => {
     if (!isMobile) {
       setIsChatOpen(true);
       setUnreadChatCount(0);
+    } else {
+      setIsChatOpen(false);
     }
   }, [isMobile]);
 
