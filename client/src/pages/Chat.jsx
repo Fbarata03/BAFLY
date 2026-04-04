@@ -209,11 +209,14 @@ const Chat = () => {
       }
     } catch {}
 
+    // Build the remote stream track-by-track so we never depend on event.streams[0]
+    // (some browsers/proxies don't populate it reliably).
+    const remoteStream = new MediaStream();
     pc.ontrack = (event) => {
+      remoteStream.addTrack(event.track);
       if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+        remoteVideoRef.current.srcObject = remoteStream;
         setRemoteVideoActive(true);
-        // Master touch: ensure video plays (bypass autoplay policy)
         remoteVideoRef.current.play().catch(e => console.warn("Autoplay blocked:", e));
       }
     };
@@ -625,7 +628,11 @@ const Chat = () => {
           localStreamRef.current.removeTrack(oldVideoTrack);
         }
         localStreamRef.current.addTrack(newVideoTrack);
-        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+        // Keep localStreamRef in sync with the state so initPeerConnection
+        // always reads the same tracks as what is displayed locally.
+        const updatedStream = new MediaStream(localStreamRef.current.getTracks());
+        localStreamRef.current = updatedStream;
+        setLocalStream(updatedStream);
         setCurrentCameraId(nextDeviceId);
       }
     } catch (err) {
