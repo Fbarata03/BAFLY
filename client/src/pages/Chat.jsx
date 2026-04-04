@@ -42,6 +42,7 @@ const Chat = () => {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   const [isChatOpen, setIsChatOpen] = useState(() => !window.matchMedia("(max-width: 900px)").matches);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [callDuration, setCallDuration] = useState(0);
 
   const peerConfigRef = useRef(ICE_SERVERS);
   const icePromiseRef = useRef(null);
@@ -532,6 +533,22 @@ const Chat = () => {
     };
   }, [navigate, initPeerConnection, cleanupPeerConnection, emitJoinQueue]);
 
+  // Call duration timer
+  useEffect(() => {
+    if (status !== "connected") {
+      setCallDuration(0);
+      return;
+    }
+    const interval = setInterval(() => setCallDuration((d) => d + 1), 1000);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const formatDuration = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, "0");
+    const s = (secs % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
   // --- Handlers ---
 
   const sendMessage = (text) => {
@@ -619,43 +636,67 @@ const Chat = () => {
 
   return (
     <div className="chat-page">
-      <header className="chat-header">
-        <div className="logo small" onClick={() => navigate("/")} style={{cursor:'pointer'}}>
-          <span className="logo-ba">BA</span>
-          <span className="logo-fly">FLY</span>
-        </div>
-        <div className={`status-chip ${status}`}>
-          {status === "searching" && (
-            <>
-              <span className="material-icons status-spinner" aria-hidden="true">
-                autorenew
-              </span>
-              A procurar
-            </>
-          )}
-          {status === "connected" && "✓ Conectado"}
-          {status === "disconnected" && "○ Desconectado"}
-        </div>
-        <div className="user-info-header" style={{marginLeft:'auto'}}>
-          {user ? (
-            <div style={{display:'flex', alignItems:'center', gap:10}}>
-              <span>{user.displayName || user.username}</span>
-              <button
-                onClick={() => { 
-                  localStorage.removeItem("auth_token"); 
-                  localStorage.removeItem("auth_user"); 
-                  setUser(null);
-                  navigate("/");
-                }}
-                className="ctrl-btn stop"
-                style={{padding:'5px 10px', fontSize:'0.7rem'}}
-              >
-                Sair
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </header>
+      {isMobile ? (
+        <header className="chat-header mobile-call-header">
+          <button className="call-hdr-btn" onClick={handleStop} aria-label="Voltar">
+            <span className="material-icons">arrow_back_ios</span>
+          </button>
+          <div className="call-hdr-center">
+            <span className="call-hdr-name">
+              {remoteCountryCode
+                ? <img src={`https://flagcdn.com/24x18/${remoteCountryCode.toLowerCase()}.png`} alt={remoteCountryCode} style={{width:16,height:12,borderRadius:2,marginRight:6,verticalAlign:'middle'}} />
+                : null}
+              STRANGER
+            </span>
+            <span className="call-hdr-timer">
+              {status === "connected"
+                ? formatDuration(callDuration)
+                : status === "searching"
+                ? "A procurar..."
+                : "Desconectado"}
+            </span>
+          </div>
+          <button className="call-hdr-btn" onClick={() => setShowReportModal(true)} aria-label="Reportar">
+            <span className="material-icons">flag</span>
+          </button>
+        </header>
+      ) : (
+        <header className="chat-header">
+          <div className="logo small" onClick={() => navigate("/")} style={{cursor:'pointer'}}>
+            <span className="logo-ba">BA</span>
+            <span className="logo-fly">FLY</span>
+          </div>
+          <div className={`status-chip ${status}`}>
+            {status === "searching" && (
+              <>
+                <span className="material-icons status-spinner" aria-hidden="true">autorenew</span>
+                A procurar
+              </>
+            )}
+            {status === "connected" && "✓ Conectado"}
+            {status === "disconnected" && "○ Desconectado"}
+          </div>
+          <div className="user-info-header" style={{marginLeft:'auto'}}>
+            {user ? (
+              <div style={{display:'flex', alignItems:'center', gap:10}}>
+                <span>{user.displayName || user.username}</span>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("auth_token");
+                    localStorage.removeItem("auth_user");
+                    setUser(null);
+                    navigate("/");
+                  }}
+                  className="ctrl-btn stop"
+                  style={{padding:'5px 10px', fontSize:'0.7rem'}}
+                >
+                  Sair
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </header>
+      )}
 
       <div className="chat-content">
         <VideoGrid
@@ -671,18 +712,10 @@ const Chat = () => {
           isMuted={isMuted}
           remoteIsMuted={remoteIsMuted}
           onTap={isMobile && isChatOpen ? () => setIsChatOpen(false) : undefined}
+          isMobile={isMobile}
+          hasMultipleCameras={hasMultipleCameras}
+          onSwitchCamera={handleSwitchCamera}
         />
-        {isMobile && !isChatOpen ? (
-          <button
-            type="button"
-            className="chat-open-btn"
-            onClick={() => setIsChatOpen(true)}
-            aria-label="Abrir chat"
-          >
-            <span className="material-icons">chat</span>
-            {unreadChatCount > 0 ? <span className="chat-open-badge">{unreadChatCount}</span> : null}
-          </button>
-        ) : null}
         {isMobile && isChatOpen ? (
           <div className="chat-backdrop" onClick={() => setIsChatOpen(false)} />
         ) : null}
@@ -708,6 +741,9 @@ const Chat = () => {
         onReport={() => setShowReportModal(true)}
         isMuted={isMuted}
         isVideoOff={isVideoOff}
+        isMobile={isMobile}
+        onOpenChat={() => setIsChatOpen(true)}
+        unreadChatCount={unreadChatCount}
       />
 
       {showReportModal && (

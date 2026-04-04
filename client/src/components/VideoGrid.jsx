@@ -15,7 +15,10 @@ const VideoGrid = ({
   localVideoActive,
   isMuted,
   remoteIsMuted,
-  onTap
+  onTap,
+  isMobile,
+  hasMultipleCameras,
+  onSwitchCamera,
 }) => {
   return (
     <div className="video-main-area" onClick={onTap}>
@@ -42,38 +45,12 @@ const VideoGrid = ({
             </p>
           </div>
         )}
-        <video 
-          ref={remoteVideoRef} 
-          autoPlay 
-          playsInline 
-          className={`remote-video-main ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`} 
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className={`remote-video-main ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`}
         />
-        
-        {/* Status Chip Overlay */}
-        <div className={`status-overlay-chip ${status}`}>
-          {status === 'connected' ? (
-            <>
-              {remoteCountryCode && (
-                <img 
-                  src={flagUrl(remoteCountryCode)} 
-                  alt={remoteCountryCode} 
-                  style={{ width: 18, height: 14, borderRadius: 2 }} 
-                />
-              )}
-              Conectado
-            </>
-          ) : (
-            <>
-              <span className="status-dot"></span>
-              A procurar
-            </>
-          )}
-        </div>
-
-        {/* Stranger Label */}
-        <div className="label-stranger">
-          STRANGER
-        </div>
 
         {/* Remote Mute Indicator */}
         {remoteIsMuted && status === 'connected' && (
@@ -82,25 +59,60 @@ const VideoGrid = ({
           </div>
         )}
       </div>
-      
-      {/* Your Video (Floating Overlay) */}
+
+      {/* Your Video (Floating PiP) */}
       <div className="local-video-floating">
         <div className="local-video-inner">
           <video ref={localVideoRef} autoPlay muted playsInline className="local-video-feed" />
-          <div className="label-you">YOU</div>
+          {!localVideoActive && (
+            <div className="local-placeholder-overlay">
+              <span className="material-icons">videocam</span>
+            </div>
+          )}
           {isMuted && (
             <div className="mute-indicator local-mute">
               <span className="material-icons">mic_off</span>
             </div>
           )}
-          {!localVideoActive && (
-            <div className="local-placeholder-overlay">
-              <span className="material-icons">videocam</span>
-              <p>Your Camera</p>
-            </div>
+          {/* Switch camera button inside PiP (mobile only) */}
+          {isMobile && hasMultipleCameras && (
+            <button
+              className="pip-switch-btn"
+              onClick={(e) => { e.stopPropagation(); onSwitchCamera(); }}
+              aria-label="Trocar câmara"
+            >
+              <span className="material-icons">cameraswitch</span>
+            </button>
           )}
         </div>
       </div>
+
+      {/* Desktop overlays */}
+      {!isMobile && (
+        <>
+          <div className={`status-overlay-chip ${status}`}>
+            {status === 'connected' ? (
+              <>
+                {remoteCountryCode && (
+                  <img
+                    src={flagUrl(remoteCountryCode)}
+                    alt={remoteCountryCode}
+                    style={{ width: 18, height: 14, borderRadius: 2 }}
+                  />
+                )}
+                Conectado
+              </>
+            ) : (
+              <>
+                <span className="status-dot"></span>
+                A procurar
+              </>
+            )}
+          </div>
+          <div className="label-stranger">STRANGER</div>
+          <div className="label-you">YOU</div>
+        </>
+      )}
     </div>
   );
 };

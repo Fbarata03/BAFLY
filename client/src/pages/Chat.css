@@ -28,25 +28,72 @@
   min-height: 0;
 }
 
-
+/* ── Mobile: WhatsApp call UI ── */
 @media (max-width: 900px) {
   .chat-page {
     min-height: 100dvh;
     position: relative;
   }
 
+  /* Hide desktop header on mobile */
   .chat-header {
+    display: none;
+  }
+
+  /* WhatsApp-style call header */
+  .mobile-call-header {
+    display: flex !important;
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: calc(60px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) calc(12px + env(safe-area-inset-right)) 0
-      calc(12px + env(safe-area-inset-left));
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
+    height: calc(64px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 12px 0 12px;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72) 0%, transparent 100%);
     border-bottom: none;
     z-index: 150;
+  }
+
+  .call-hdr-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .call-hdr-btn .material-icons {
+    font-size: 20px;
+  }
+
+  .call-hdr-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .call-hdr-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+  }
+
+  .call-hdr-timer {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-variant-numeric: tabular-nums;
   }
 
   .chat-content {
@@ -54,68 +101,16 @@
     height: 100%;
     position: relative;
   }
+}
 
-  .logo.small {
-    font-size: 1.1rem;
-    position: absolute;
-    left: 12px;
-  }
-
-  .status-chip {
-    margin-left: 0;
-    padding: 5px 12px;
-    font-size: 0.72rem;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .user-info-header {
-    display: none;
+/* Hide mobile header on desktop */
+@media (min-width: 901px) {
+  .mobile-call-header {
+    display: none !important;
   }
 }
 
-/* Chat button (mobile) */
-.chat-open-btn {
-  position: absolute;
-  right: 12px;
-  bottom: calc(78px + env(safe-area-inset-bottom));
-  width: clamp(44px, 12vw, 50px);
-  height: clamp(44px, 12vw, 50px);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 220;
-}
-
-.chat-open-btn .material-icons {
-  font-size: clamp(20px, 5vw, 24px);
-}
-
-.chat-open-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: #00ff88;
-  color: #000;
-  font-weight: 800;
-  font-size: 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #080c10;
-}
-
+/* Chat backdrop (mobile) */
 .chat-backdrop {
   position: absolute;
   inset: 0;
@@ -123,37 +118,7 @@
   z-index: 140;
 }
 
-@media (max-width: 375px) {
-  .chat-header {
-    height: calc(54px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) 8px 0 8px;
-  }
-
-  .status-chip {
-    font-size: 0.68rem;
-    padding: 4px 8px;
-  }
-
-  .logo.small {
-    font-size: 1rem;
-  }
-
-  .chat-open-btn {
-    right: 10px;
-  }
-}
-
-@media (max-width: 900px) and (orientation: landscape) {
-  .chat-header {
-    height: calc(44px + env(safe-area-inset-top));
-  }
-
-  .chat-open-btn {
-    bottom: calc(62px + env(safe-area-inset-bottom));
-  }
-}
-
-/* Status Chip */
+/* Status Chip (desktop) */
 .status-chip {
   padding: 6px 14px;
   border-radius: 20px;
