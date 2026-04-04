@@ -148,6 +148,16 @@
   gap: 8px;
 }
 
+.status-spinner {
+  font-size: 18px;
+  animation: baflySpin 0.9s linear infinite;
+}
+
+@keyframes baflySpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .status-chip.searching {
   color: #fff;
   background: rgba(0, 170, 255, 0.2);

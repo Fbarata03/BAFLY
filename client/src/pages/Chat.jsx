@@ -625,7 +625,14 @@ const Chat = () => {
           <span className="logo-fly">FLY</span>
         </div>
         <div className={`status-chip ${status}`}>
-          {status === "searching" && "⏳ A procurar..."}
+          {status === "searching" && (
+            <>
+              <span className="material-icons status-spinner" aria-hidden="true">
+                autorenew
+              </span>
+              A procurar
+            </>
+          )}
           {status === "connected" && "✓ Conectado"}
           {status === "disconnected" && "○ Desconectado"}
         </div>
