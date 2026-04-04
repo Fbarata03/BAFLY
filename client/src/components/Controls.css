@@ -11,19 +11,31 @@
 
 @media (max-width: 900px) {
   .controls-bar {
-    height: calc(64px + env(safe-area-inset-bottom));
-    gap: clamp(6px, 2vw, 10px);
-    padding: 0 calc(clamp(6px, 2.5vw, 10px) + env(safe-area-inset-right))
-      calc(env(safe-area-inset-bottom) + 10px)
-      calc(clamp(6px, 2.5vw, 10px) + env(safe-area-inset-left));
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+    min-height: calc(68px + env(safe-area-inset-bottom));
+    background: rgba(0, 0, 0, 0.52);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 200;
+    gap: clamp(6px, 2.5vw, 14px);
+    padding: 10px calc(clamp(8px, 3vw, 14px) + env(safe-area-inset-right))
+      calc(env(safe-area-inset-bottom) + 12px)
+      calc(clamp(8px, 3vw, 14px) + env(safe-area-inset-left));
   }
 
   .ctrl-btn {
-    width: clamp(34px, 10vw, 40px);
-    height: clamp(34px, 10vw, 40px);
+    width: clamp(42px, 11vw, 50px);
+    height: clamp(42px, 11vw, 50px);
     border-radius: 50%;
     flex-direction: column;
     padding: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .ctrl-btn .btn-label {
@@ -31,39 +43,50 @@
   }
 
   .ctrl-btn .material-icons {
-    font-size: clamp(16px, 4.6vw, 19px);
+    font-size: clamp(18px, 5vw, 22px);
   }
 
   .ctrl-btn.next-btn {
     width: auto;
     flex: 1;
-    min-width: clamp(86px, 28vw, 120px);
-    max-width: 220px;
-    border-radius: 12px;
-    font-size: clamp(0.72rem, 2.9vw, 0.8rem);
-    padding: 0 clamp(10px, 3vw, 14px);
+    min-width: clamp(90px, 30vw, 130px);
+    max-width: 200px;
+    border-radius: 24px;
+    font-size: clamp(0.75rem, 3vw, 0.85rem);
+    padding: 0 clamp(12px, 3.5vw, 18px);
+    background: #00aaff;
+    border: none;
+  }
+
+  .ctrl-btn.stop {
+    background: rgba(220, 38, 38, 0.75);
+    border-color: rgba(220, 38, 38, 0.5);
+  }
+
+  .ctrl-btn.stop:hover {
+    background: #ff4444;
   }
 }
 
 @media (max-width: 900px) and (orientation: landscape) {
   .controls-bar {
-    height: calc(56px + env(safe-area-inset-bottom));
+    min-height: calc(56px + env(safe-area-inset-bottom));
     gap: 8px;
-    padding: 0 calc(10px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 10px)
+    padding: 8px calc(10px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 8px)
       calc(10px + env(safe-area-inset-left));
   }
 
   .ctrl-btn {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
 
   .ctrl-btn .material-icons {
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .ctrl-btn.next-btn {
-    min-width: 86px;
+    min-width: 90px;
     font-size: 0.78rem;
   }
 }
@@ -71,17 +94,17 @@
 @media (max-width: 375px) {
   .controls-bar {
     gap: 6px;
-    padding: 0 calc(6px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 10px)
+    padding: 8px calc(6px + env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 10px)
       calc(6px + env(safe-area-inset-left));
   }
 
   .ctrl-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .ctrl-btn.next-btn {
-    min-width: 76px;
+    min-width: 78px;
     font-size: 0.75rem;
   }
 }
@@ -93,7 +116,7 @@
 
   .ctrl-btn.next-btn {
     min-width: 70px;
-    max-width: 170px;
+    max-width: 160px;
   }
 }
 

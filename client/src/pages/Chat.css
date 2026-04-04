@@ -32,18 +32,27 @@
 @media (max-width: 900px) {
   .chat-page {
     min-height: 100dvh;
+    position: relative;
   }
 
   .chat-header {
-    height: calc(56px + env(safe-area-inset-top));
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) calc(12px + env(safe-area-inset-right)) 0
       calc(12px + env(safe-area-inset-left));
-    position: relative;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
+    border-bottom: none;
+    z-index: 150;
     justify-content: center;
   }
 
   .chat-content {
-    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    position: relative;
   }
 
   .logo.small {
@@ -54,8 +63,11 @@
 
   .status-chip {
     margin-left: 0;
-    padding: 6px 12px;
-    font-size: 0.75rem;
+    padding: 5px 12px;
+    font-size: 0.72rem;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .user-info-header {
@@ -67,12 +79,14 @@
 .chat-open-btn {
   position: absolute;
   right: 12px;
-  bottom: 12px;
-  width: clamp(44px, 12vw, 52px);
-  height: clamp(44px, 12vw, 52px);
-  border-radius: clamp(12px, 3vw, 16px);
-  background: rgba(13, 17, 23, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  width: clamp(44px, 12vw, 50px);
+  height: clamp(44px, 12vw, 50px);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   display: flex;
   align-items: center;
@@ -111,7 +125,7 @@
 
 @media (max-width: 375px) {
   .chat-header {
-    height: calc(50px + env(safe-area-inset-top));
+    height: calc(54px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) 8px 0 8px;
   }
 
@@ -125,7 +139,6 @@
   }
 
   .chat-open-btn {
-    bottom: 10px;
     right: 10px;
   }
 }
@@ -133,6 +146,10 @@
 @media (max-width: 900px) and (orientation: landscape) {
   .chat-header {
     height: calc(44px + env(safe-area-inset-top));
+  }
+
+  .chat-open-btn {
+    bottom: calc(62px + env(safe-area-inset-bottom));
   }
 }
 
