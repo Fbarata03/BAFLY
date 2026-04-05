@@ -143,7 +143,7 @@ const VideoGrid = ({
     <div className="video-main-area" onClick={onTap}>
       {/* Stranger Video (Background/Main) */}
       <div className="remote-video-wrapper">
-        {(status === 'searching' || status === 'disconnected' || (status === 'connected' && !remoteVideoActive)) && (
+        {(status === 'searching' || status === 'disconnected' || (status === 'connected' && !remoteVideoActive && !remoteVideoOff)) && (
           <div className="video-placeholder-main">
             <div className="placeholder-icon-circle">
               <span className="material-icons">{status === 'disconnected' ? 'person_off' : 'videocam'}</span>
@@ -171,8 +171,8 @@ const VideoGrid = ({
           className={`remote-video-main ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`}
         />
 
-        {/* Remote camera off overlay */}
-        {remoteVideoOff && remoteVideoActive && status === 'connected' && (
+        {/* Remote camera off overlay — shown whenever peer has camera off, even before track arrives */}
+        {remoteVideoOff && status === 'connected' && (
           <div className="remote-camera-off-overlay">
             <div className="cam-off-avatar">
               <span className="material-icons">person</span>
