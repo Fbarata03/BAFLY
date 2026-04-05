@@ -293,8 +293,8 @@ const attemptMatchAll = () => {
     otherUser.socket.join(roomId);
     user.socket.data.inMatch = true;
     otherUser.socket.data.inMatch = true;
-    user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null });
-    otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
+    user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null, partnerSocketId: otherUser.socket.id });
+    otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null, partnerSocketId: user.socket.id });
     db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(() => {});
   });
 
@@ -478,8 +478,8 @@ io.on('connection', async (socket) => {
 
       queue = queue.filter(u => u.socket.id !== user.socket.id && u.socket.id !== otherUser.socket.id);
 
-      user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null });
-      otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null });
+      user.socket.emit('matched', { role: 'caller', roomId, partnerGeo: otherUser.geo || null, selfGeo: user.geo || null, partnerSocketId: otherUser.socket.id });
+      otherUser.socket.emit('matched', { role: 'callee', roomId, partnerGeo: user.geo || null, selfGeo: otherUser.geo || null, partnerSocketId: user.socket.id });
 
       // Log session to DB
       db.query('INSERT INTO sessions (room_id, user1_id, user2_id) VALUES ($1, $2, $3)', [roomId, user.socket.id, otherUser.socket.id]).catch(console.error);

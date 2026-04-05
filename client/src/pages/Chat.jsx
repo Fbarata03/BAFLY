@@ -44,6 +44,7 @@ const Chat = () => {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [currentCameraId, setCurrentCameraId] = useState(null);
   const [roomId, setRoomId] = useState(null);
+  const [partnerSocketId, setPartnerSocketId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
   const [remoteVideoOff, setRemoteVideoOff] = useState(false);
@@ -184,6 +185,7 @@ const Chat = () => {
     setMessages([]);
     setRoomId(null);
     roomIdRef.current = null;
+    setPartnerSocketId(null);
     setRemoteCountryCode(null);
     setRemoteIsMuted(false);
     setRemoteVideoOff(false);
@@ -552,9 +554,11 @@ const Chat = () => {
       setRoomId(matchedRoomId);
       roomIdRef.current = matchedRoomId;
       setStatus("connected");
+      setPartnerSocketId(data?.partnerSocketId || null);
       setMessages([{ type: "system", text: "✓ Estranho conectado" }]);
       if (data?.selfGeo?.countryCode) setLocalCountryCode(String(data.selfGeo.countryCode).toUpperCase());
       if (data?.partnerGeo?.countryCode) setRemoteCountryCode(String(data.partnerGeo.countryCode).toUpperCase());
+
 
       initPeerConnection(role, matchedRoomId);
 
@@ -621,6 +625,7 @@ const Chat = () => {
       setRemoteCountryCode(null);
       setRemoteIsMuted(false);
       setRemoteVideoOff(false);
+      setPartnerSocketId(null);
       cleanupPeerConnection();
     });
 
@@ -875,6 +880,7 @@ const Chat = () => {
             disabled={false}
             showClose={isMobile}
             onClose={() => setIsChatOpen(false)}
+            onReport={() => setShowReportModal(true)}
             isOpen={!isMobile || isChatOpen}
           />
         ) : null}
@@ -898,7 +904,7 @@ const Chat = () => {
       {showReportModal && (
         <ReportModal
           onClose={() => setShowReportModal(false)}
-          reportedId={roomId}
+          reportedId={partnerSocketId}
         />
       )}
     </div>

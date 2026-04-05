@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatBox.css';
 
-const ChatBox = ({ messages, onSendMessage, disabled, onClose, showClose, isOpen }) => {
+const ChatBox = ({ messages, onSendMessage, disabled, onClose, showClose, isOpen, onReport }) => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -34,6 +34,11 @@ const ChatBox = ({ messages, onSendMessage, disabled, onClose, showClose, isOpen
           <h3>Chat</h3>
           <p>Online</p>
         </div>
+        {onReport ? (
+          <button type="button" className="chat-report-btn" onClick={onReport} aria-label="Denunciar">
+            <span className="material-icons">flag</span>
+          </button>
+        ) : null}
         {showClose ? (
           <button type="button" className="chat-close-btn" onClick={onClose} aria-label="Fechar chat">
             <span className="material-icons">close</span>

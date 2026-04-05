@@ -15,7 +15,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(18px + env(safe-area-inset-bottom) + 92px);
     height: clamp(220px, 46dvh, 420px);
     min-height: 0;
     max-height: none;
@@ -93,6 +93,7 @@
 @media (max-width: 900px) and (orientation: landscape) {
   .chat-sidebar {
     height: clamp(180px, 62dvh, 320px);
+    bottom: calc(10px + env(safe-area-inset-bottom) + 68px);
   }
 
   .chat-sidebar-header {
@@ -139,7 +140,7 @@
 }
 
 .chat-close-btn {
-  margin-left: auto;
+  margin-left: 0;
   background: transparent;
   border: none;
   color: #888;
@@ -149,6 +150,28 @@
   justify-content: center;
   padding: 6px;
   border-radius: 10px;
+}
+
+.chat-report-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #ffbb33;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.chat-report-btn:hover {
+  background: rgba(255, 187, 51, 0.12);
+  color: #ffd17a;
+}
+
+.chat-report-btn .material-icons {
+  font-size: 20px;
 }
 
 .chat-close-btn:hover {

@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { socket } from '../socket';
 import './ReportModal.css';
 
+const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? ""
+    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+      ? PROD_BACKEND
+      : import.meta.env.VITE_API_URL || PROD_BACKEND;
+
 const ReportModal = ({ onClose, reportedId }) => {
   const [reason, setReason] = useState('Spam');
   const [description, setDescription] = useState('');
@@ -14,10 +22,11 @@ const ReportModal = ({ onClose, reportedId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!reportedId) return;
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/reports', {
+      const response = await fetch(`${API_URL}/api/reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,7 +87,7 @@ const ReportModal = ({ onClose, reportedId }) => {
 
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={onClose}>Cancelar</button>
-                <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                <button type="submit" className="submit-btn" disabled={isSubmitting || !reportedId}>
                   {isSubmitting ? 'Enviando...' : 'Enviar Report'}
                 </button>
               </div>
