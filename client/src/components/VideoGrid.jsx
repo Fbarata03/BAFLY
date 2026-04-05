@@ -25,7 +25,9 @@ const VideoGrid = ({
   localCountryCode,
   remoteCountryCode,
   remoteVideoActive,
+  remoteVideoOff,
   localVideoActive,
+  isVideoOff,
   isMuted,
   remoteIsMuted,
   onTap,
@@ -169,6 +171,16 @@ const VideoGrid = ({
           className={`remote-video-main ${(!remoteVideoActive || status !== 'connected') ? 'hidden' : ''}`}
         />
 
+        {/* Remote camera off overlay */}
+        {remoteVideoOff && remoteVideoActive && status === 'connected' && (
+          <div className="remote-camera-off-overlay">
+            <div className="placeholder-icon-circle">
+              <span className="material-icons">videocam_off</span>
+            </div>
+            <p className="placeholder-text">Câmara desligada</p>
+          </div>
+        )}
+
         {/* Remote Mute Indicator */}
         {remoteIsMuted && status === 'connected' && (
           <div className="mute-indicator remote-mute">
@@ -187,9 +199,10 @@ const VideoGrid = ({
       >
         <div className="local-video-inner">
           <video ref={localVideoRef} autoPlay muted playsInline className="local-video-feed" />
-          {!localVideoActive && (
+          {(!localVideoActive || isVideoOff) && (
             <div className="local-placeholder-overlay">
-              <span className="material-icons">videocam</span>
+              <span className="material-icons">{isVideoOff ? 'videocam_off' : 'videocam'}</span>
+              {isVideoOff && <span className="local-cam-off-label">Câmara off</span>}
             </div>
           )}
           {isMuted && (

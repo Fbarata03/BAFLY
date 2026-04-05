@@ -32,8 +32,8 @@
   position: absolute;
   bottom: 20px;
   right: 20px;
-  width: 75px;
-  height: 100px;
+  width: 55px;
+  height: 74px;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid #00ff88;
@@ -111,15 +111,32 @@
   align-items: center;
   justify-content: center;
   color: #444;
+  gap: 4px;
 }
 
-.local-placeholder-overlay span {
-  font-size: 40px;
-  color: #333;
-  border: 2px solid #333;
-  border-radius: 50%;
-  padding: 10px;
-  margin-bottom: 10px;
+.local-placeholder-overlay .material-icons {
+  font-size: 22px;
+  color: #555;
+}
+
+.local-cam-off-label {
+  font-size: 8px;
+  color: #555;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Remote camera off overlay */
+.remote-camera-off-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 14, 20, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  gap: 12px;
 }
 
 /* Overlays & Labels */
@@ -244,14 +261,14 @@
     height: 100%;
   }
 
-  /* Local video: large PiP bottom-right (WhatsApp style) */
+  /* Local video: PiP bottom-right (WhatsApp style) */
   .local-video-floating {
     position: absolute;
     bottom: calc(90px + env(safe-area-inset-bottom) + 16px);
     right: 12px;
-    width: min(42vw, 155px);
-    height: min(56vw, 210px);
-    border-radius: 20px;
+    width: min(28vw, 105px);
+    height: min(37vw, 140px);
+    border-radius: 16px;
     border: 2px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
     background: #111;
@@ -269,10 +286,12 @@
     font-size: 36px;
   }
 
-  .local-placeholder-overlay span {
-    font-size: 24px;
-    padding: 6px;
-    margin-bottom: 0;
+  .local-placeholder-overlay .material-icons {
+    font-size: 20px;
+  }
+
+  .local-cam-off-label {
+    font-size: 7px;
   }
 
   .remote-mute {
@@ -292,8 +311,8 @@
   .local-video-floating {
     bottom: calc(64px + env(safe-area-inset-bottom) + 10px);
     right: calc(12px + env(safe-area-inset-right));
-    width: min(24vw, 120px);
-    height: min(32vw, 160px);
-    border-radius: 14px;
+    width: min(18vw, 90px);
+    height: min(24vw, 120px);
+    border-radius: 12px;
   }
 }

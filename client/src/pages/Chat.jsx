@@ -38,6 +38,7 @@ const Chat = () => {
   const [roomId, setRoomId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
+  const [remoteVideoOff, setRemoteVideoOff] = useState(false);
   const [remoteIsMuted, setRemoteIsMuted] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   const [isChatOpen, setIsChatOpen] = useState(() => !window.matchMedia("(max-width: 900px)").matches);
@@ -158,6 +159,7 @@ const Chat = () => {
     roomIdRef.current = null;
     setRemoteCountryCode(null);
     setRemoteIsMuted(false);
+    setRemoteVideoOff(false);
     pendingSignalingRef.current = [];
     emitJoinQueue();
   }, [cleanupPeerConnection, emitJoinQueue]);
@@ -210,10 +212,12 @@ const Chat = () => {
     } catch {}
 
     pc.ontrack = (event) => {
+      const stream = event.streams?.[0] ?? new MediaStream([event.track]);
       if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+        remoteVideoRef.current.srcObject = stream;
         setRemoteVideoActive(true);
-        // Master touch: ensure video plays (bypass autoplay policy)
+        setRemoteVideoOff(false);
+        // Bypass autoplay policy
         remoteVideoRef.current.play().catch(e => console.warn("Autoplay blocked:", e));
       }
     };
@@ -485,6 +489,7 @@ const Chat = () => {
 
     socket.on("camera_state", (data) => {
       const enabled = !!data?.enabled;
+      setRemoteVideoOff(!enabled);
       setMessages((prev) => [
         ...prev,
         { type: "system", text: enabled ? "O estranho ligou a câmara" : "O estranho desligou a câmara" },
@@ -505,6 +510,7 @@ const Chat = () => {
       setMessages((prev) => [...prev, { type: "system", text: "O estranho saiu 👋" }]);
       setRemoteCountryCode(null);
       setRemoteIsMuted(false);
+      setRemoteVideoOff(false);
       cleanupPeerConnection();
     });
 
@@ -708,7 +714,9 @@ const Chat = () => {
           localCountryCode={localCountryCode}
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}
+          remoteVideoOff={remoteVideoOff}
           localVideoActive={!!localStream}
+          isVideoOff={isVideoOff}
           isMuted={isMuted}
           remoteIsMuted={remoteIsMuted}
           onTap={isMobile && isChatOpen ? () => setIsChatOpen(false) : undefined}
