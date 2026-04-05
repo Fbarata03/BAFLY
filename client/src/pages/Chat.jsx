@@ -263,6 +263,14 @@ const Chat = () => {
     }
   }, [localStream]);
 
+  // Play remote video AFTER React removes the .hidden class (display:none → visible)
+  // Without this, play() called while element is hidden often silently fails on mobile
+  useEffect(() => {
+    if (remoteVideoActive && remoteVideoRef.current) {
+      remoteVideoRef.current.play().catch(() => {});
+    }
+  }, [remoteVideoActive]);
+
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
@@ -598,51 +606,69 @@ const Chat = () => {
   };
 
   const handleSwitchCamera = async () => {
+    const currentTrack = localStreamRef.current?.getVideoTracks()[0];
+    const currentFacing = currentTrack?.getSettings()?.facingMode;
+    // Toggle facing mode — if unknown assume front, switch to back
+    const nextFacing = (currentFacing === 'environment') ? 'user' : 'environment';
+
+    // MUST stop current track first — iOS/Android won't open a second camera otherwise
+    if (currentTrack) {
+      currentTrack.stop();
+      localStreamRef.current.removeTrack(currentTrack);
+    }
+
+    let newVideoTrack = null;
+
+    // Attempt 1: exact facingMode (most reliable on mobile)
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-      if (videoDevices.length > 1) {
-        const currentIndex = videoDevices.findIndex(d => d.deviceId === currentCameraId);
-        const nextIndex = (currentIndex + 1) % videoDevices.length;
-        const nextDeviceId = videoDevices[nextIndex].deviceId;
-
-        // Only request video — keep existing audio track alive in the peer connection
-        const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            deviceId: { exact: nextDeviceId },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            frameRate: { ideal: 30, max: 30 },
-          },
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: nextFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      newVideoTrack = s.getVideoTracks()[0];
+    } catch {
+      // Attempt 2: ideal facingMode (less strict, works on more browsers)
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: nextFacing },
           audio: false,
         });
-
-        const newVideoTrack = videoStream.getVideoTracks()[0];
-        if (newVideoTrack) {
-          try { newVideoTrack.contentHint = "motion"; } catch {}
+        newVideoTrack = s.getVideoTracks()[0];
+      } catch {
+        // Attempt 3: enumerate device IDs as last resort
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === 'videoinput');
+          if (videoDevices.length > 1) {
+            const currentIdx = videoDevices.findIndex(d => d.deviceId === currentCameraId);
+            const nextIdx = (currentIdx + 1) % videoDevices.length;
+            const s = await navigator.mediaDevices.getUserMedia({
+              video: { deviceId: { ideal: videoDevices[nextIdx].deviceId } },
+              audio: false,
+            });
+            newVideoTrack = s.getVideoTracks()[0];
+          }
+        } catch (e) {
+          console.error("Camera switch failed:", e);
         }
-
-        // Replace in peer connection without renegotiation
-        if (peerConnectionRef.current) {
-          const sender = peerConnectionRef.current.getSenders().find(s => s.track && s.track.kind === 'video');
-          if (sender) await sender.replaceTrack(newVideoTrack);
-        }
-
-        // Swap only the video track in the existing stream
-        const oldVideoTrack = localStreamRef.current?.getVideoTracks()[0];
-        if (oldVideoTrack) {
-          oldVideoTrack.stop();
-          localStreamRef.current.removeTrack(oldVideoTrack);
-        }
-        localStreamRef.current.addTrack(newVideoTrack);
-        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-        setCurrentCameraId(nextDeviceId);
       }
-    } catch (err) {
-      console.error("Error switching camera:", err);
-      alert("Não foi possível trocar a câmara: " + err.message);
     }
+
+    if (!newVideoTrack) return;
+
+    try { newVideoTrack.contentHint = "motion"; } catch {}
+
+    // Replace track in peer connection (no renegotiation needed)
+    if (peerConnectionRef.current) {
+      const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) {
+        try { await sender.replaceTrack(newVideoTrack); } catch {}
+      }
+    }
+
+    localStreamRef.current.addTrack(newVideoTrack);
+    setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+    setCurrentCameraId(newVideoTrack.getSettings()?.deviceId ?? null);
   };
 
   return (
