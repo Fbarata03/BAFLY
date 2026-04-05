@@ -11,6 +11,14 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19305" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+    { urls: "stun:stun.cloudflare.com:3478" },
+    // Public TURN fallback (openrelay demo — used when server ICE fetch fails)
+    { urls: "turn:openrelay.metered.ca:80",               username: "openrelayproject", credential: "openrelayprojectsecret" },
+    { urls: "turn:openrelay.metered.ca:443",              username: "openrelayproject", credential: "openrelayprojectsecret" },
+    { urls: "turn:openrelay.metered.ca:443?transport=tcp",username: "openrelayproject", credential: "openrelayprojectsecret" },
   ],
 };
 
@@ -39,6 +47,7 @@ const Chat = () => {
   const [localStream, setLocalStream] = useState(null);
   const [remoteVideoActive, setRemoteVideoActive] = useState(false);
   const [remoteVideoOff, setRemoteVideoOff] = useState(false);
+  const [remotePlayBlocked, setRemotePlayBlocked] = useState(false);
   const [remoteIsMuted, setRemoteIsMuted] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   const [isChatOpen, setIsChatOpen] = useState(() => !window.matchMedia("(max-width: 900px)").matches);
@@ -147,6 +156,7 @@ const Chat = () => {
       remoteVideoRef.current.srcObject = null;
     }
     setRemoteVideoActive(false);
+    setRemotePlayBlocked(false);
   }, []);
 
   const handleStop = useCallback(() => {
@@ -189,30 +199,17 @@ const Chat = () => {
     const pc = new RTCPeerConnection({
       ...(peerConfigRef.current || ICE_SERVERS),
       iceTransportPolicy: "all",
+      bundlePolicy: "max-bundle",
+      rtcpMuxPolicy: "require",
     });
     peerConnectionRef.current = pc;
 
     localStreamRef.current.getTracks().forEach((track) => {
       pc.addTrack(track, localStreamRef.current);
     });
-
-    try {
-      const senders = pc.getSenders();
-      const videoSender = senders.find((s) => s.track && s.track.kind === "video");
-      if (videoSender && videoSender.getParameters) {
-        const p = videoSender.getParameters();
-        if (!p.encodings || !p.encodings.length) p.encodings = [{}];
-        p.encodings[0] = { ...(p.encodings[0] || {}), maxBitrate: 1500000, maxFramerate: 30 };
-        await videoSender.setParameters(p);
-      }
-      const audioSender = senders.find((s) => s.track && s.track.kind === "audio");
-      if (audioSender && audioSender.getParameters) {
-        const p = audioSender.getParameters();
-        if (!p.encodings || !p.encodings.length) p.encodings = [{}];
-        p.encodings[0] = { ...(p.encodings[0] || {}), maxBitrate: 64000 };
-        await audioSender.setParameters(p);
-      }
-    } catch {}
+    // NOTE: setParameters() is NOT called here intentionally.
+    // Calling it before offer/answer causes undefined behaviour in Safari/Firefox
+    // and can silently corrupt the sender, making video never transmit.
 
     pc.ontrack = (event) => {
       const stream = event.streams?.[0] ?? new MediaStream([event.track]);
@@ -220,8 +217,14 @@ const Chat = () => {
         remoteVideoRef.current.srcObject = stream;
         setRemoteVideoActive(true);
         setRemoteVideoOff(false);
-        // Bypass autoplay policy
-        remoteVideoRef.current.play().catch(e => console.warn("Autoplay blocked:", e));
+        remoteVideoRef.current.play().then(() => {
+          setRemotePlayBlocked(false);
+        }).catch((e) => {
+          // NotAllowedError = browser blocked autoplay (common on iOS Safari)
+          if (e?.name === 'NotAllowedError' || e?.name === 'NotSupportedError') {
+            setRemotePlayBlocked(true);
+          }
+        });
       }
     };
 
@@ -285,7 +288,13 @@ const Chat = () => {
   // Play remote video AFTER React removes the .hidden class (display:none → visible)
   useEffect(() => {
     if (remoteVideoActive && remoteVideoRef.current) {
-      remoteVideoRef.current.play().catch(() => {});
+      remoteVideoRef.current.play().then(() => {
+        setRemotePlayBlocked(false);
+      }).catch((e) => {
+        if (e?.name === 'NotAllowedError' || e?.name === 'NotSupportedError') {
+          setRemotePlayBlocked(true);
+        }
+      });
     }
   }, [remoteVideoActive]);
 
@@ -769,6 +778,12 @@ const Chat = () => {
           remoteCountryCode={remoteCountryCode}
           remoteVideoActive={remoteVideoActive}
           remoteVideoOff={remoteVideoOff}
+          remotePlayBlocked={remotePlayBlocked}
+          onRetryPlay={() => {
+            if (remoteVideoRef.current) {
+              remoteVideoRef.current.play().then(() => setRemotePlayBlocked(false)).catch(() => {});
+            }
+          }}
           localVideoActive={!!localStream}
           isVideoOff={isVideoOff}
           isMuted={isMuted}

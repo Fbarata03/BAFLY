@@ -26,6 +26,8 @@ const VideoGrid = ({
   remoteCountryCode,
   remoteVideoActive,
   remoteVideoOff,
+  remotePlayBlocked,
+  onRetryPlay,
   localVideoActive,
   isVideoOff,
   isMuted,
@@ -191,6 +193,14 @@ const VideoGrid = ({
               <span className="material-icons">videocam_off</span>
               <span>Câmara desligada</span>
             </div>
+          </div>
+        )}
+
+        {/* Tap-to-play overlay — iOS Safari blocks autoplay of unmuted video */}
+        {remotePlayBlocked && remoteVideoActive && !remoteVideoOff && status === 'connected' && (
+          <div className="remote-play-overlay" onClick={onRetryPlay}>
+            <span className="material-icons">play_circle</span>
+            <p>Toca para iniciar o vídeo</p>
           </div>
         )}
 
