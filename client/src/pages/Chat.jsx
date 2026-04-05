@@ -76,6 +76,8 @@ const Chat = () => {
   const remoteVideoOffRef = useRef(false);
   const roleRef = useRef(null);
   const remoteTrackTimerRef = useRef(null);
+  const relayForcedRef = useRef(false);
+  const iceFailTimerRef = useRef(null);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
@@ -165,6 +167,10 @@ const Chat = () => {
       clearTimeout(remoteTrackTimerRef.current);
       remoteTrackTimerRef.current = null;
     }
+    if (iceFailTimerRef.current) {
+      clearTimeout(iceFailTimerRef.current);
+      iceFailTimerRef.current = null;
+    }
   }, []);
 
   const handleStop = useCallback(() => {
@@ -185,10 +191,11 @@ const Chat = () => {
     emitJoinQueue();
   }, [cleanupPeerConnection, emitJoinQueue]);
 
-  const initPeerConnection = useCallback(async (role, rId) => {
+  const initPeerConnection = useCallback(async (role, rId, forceRelay = false) => {
     cleanupPeerConnection();
     iceRestartedRef.current = false;
     roleRef.current = role;
+    relayForcedRef.current = !!forceRelay;
 
     // Master Logic: Wait for local stream if not yet ready
     let attempts = 0;
@@ -207,7 +214,7 @@ const Chat = () => {
 
     const pc = new RTCPeerConnection({
       ...(peerConfigRef.current || ICE_SERVERS),
-      iceTransportPolicy: "all",
+      iceTransportPolicy: forceRelay ? "relay" : "all",
       bundlePolicy: "max-bundle",
       rtcpMuxPolicy: "require",
     });
@@ -268,6 +275,23 @@ const Chat = () => {
           await peerConnectionRef.current.setLocalDescription(offer);
           socket.emit("offer", { roomId: rId, sdp: offer });
         } catch {}
+      }
+
+      if ((state === "failed" || state === "disconnected") && rId && !relayForcedRef.current) {
+        if (iceFailTimerRef.current) clearTimeout(iceFailTimerRef.current);
+        iceFailTimerRef.current = setTimeout(() => {
+          if (statusRef.current !== "connected") return;
+          if (roomIdRef.current !== rId) return;
+          if (relayForcedRef.current) return;
+          relayForcedRef.current = true;
+          socket.emit("force_relay", { roomId: rId });
+          initPeerConnection(roleRef.current || role, rId, true);
+        }, 5000);
+      } else if (state === "connected" || state === "completed") {
+        if (iceFailTimerRef.current) {
+          clearTimeout(iceFailTimerRef.current);
+          iceFailTimerRef.current = null;
+        }
       }
     };
 
@@ -560,6 +584,12 @@ const Chat = () => {
       } catch {}
     });
 
+    socket.on("force_relay", () => {
+      if (!roomIdRef.current) return;
+      relayForcedRef.current = true;
+      initPeerConnection(roleRef.current || "callee", roomIdRef.current, true);
+    });
+
     socket.on("message", (data) => {
       setMessages((prev) => [...prev, { type: "stranger", text: data.text }]);
       if (isMobileRef.current && !isChatOpenRef.current) {
@@ -608,6 +638,7 @@ const Chat = () => {
       socket.off("answer");
       socket.off("ice_candidate");
       socket.off("request_ice_restart");
+      socket.off("force_relay");
       socket.off("message");
       socket.off("camera_state");
       socket.off("mic_state");

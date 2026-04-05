@@ -402,6 +402,12 @@ io.on('connection', async (socket) => {
     socket.to(roomId).emit('request_ice_restart');
   });
 
+  socket.on('force_relay', (data) => {
+    const { roomId } = data || {};
+    if (!roomId) return;
+    socket.to(roomId).emit('force_relay');
+  });
+
   socket.on('next', () => {
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;
