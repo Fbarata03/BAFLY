@@ -237,6 +237,18 @@ const Chat = () => {
     pc.oniceconnectionstatechange = async () => {
       if (!peerConnectionRef.current) return;
       const state = peerConnectionRef.current.iceConnectionState;
+
+      // When ICE connects, sync camera/mic state to peer.
+      // This is the RELIABLE moment — timer-based sync can fire too early or too late.
+      if ((state === 'connected' || state === 'completed') && rId) {
+        if (isVideoOffRef.current) {
+          socket.emit("camera_state", { roomId: rId, enabled: false });
+        }
+        if (isMutedRef.current) {
+          socket.emit("mic_state", { roomId: rId, enabled: false });
+        }
+      }
+
       if (state === "failed" && role === "caller" && !iceRestartedRef.current) {
         iceRestartedRef.current = true;
         try {
@@ -483,18 +495,6 @@ const Chat = () => {
 
       initPeerConnection(role, matchedRoomId);
 
-      // Sync camera/mic state to new peer — needed when user had camera/mic off before matching
-      // Use delay so the peer connection and signaling are established first
-      setTimeout(() => {
-        if (!roomIdRef.current) return;
-        if (isVideoOffRef.current) {
-          socket.emit("camera_state", { roomId: matchedRoomId, enabled: false });
-        }
-        if (isMutedRef.current) {
-          socket.emit("mic_state", { roomId: matchedRoomId, enabled: false });
-        }
-      }, 2500);
-
       const pending = pendingMessagesRef.current;
       if (pending.length) {
         pending.forEach((text) => {
@@ -625,77 +625,70 @@ const Chat = () => {
 
   const handleSwitchCamera = async () => {
     const currentTrack = localStreamRef.current?.getVideoTracks()[0];
-    const currentFacing = currentTrack?.getSettings()?.facingMode;
-    const nextFacing = (currentFacing === 'environment') ? 'user' : 'environment';
+    if (!currentTrack) return;
 
-    // Helper: try to get a video stream with several constraint fallbacks
-    const tryGetVideo = async (constraints) => {
-      // Attempt A: exact facingMode
+    const currentFacing = currentTrack.getSettings()?.facingMode;
+    const nextFacing = currentFacing === 'environment' ? 'user' : 'environment';
+
+    // ── Method 1: applyConstraints ──────────────────────────────────────────
+    // Best approach: mutates the existing track in-place, no stream restart,
+    // no race conditions. Works on Chrome Android 84+ and Safari 15+.
+    try {
+      await currentTrack.applyConstraints({ facingMode: { exact: nextFacing } });
+      setCurrentCameraId(currentTrack.getSettings()?.deviceId ?? null);
+      // Force re-render so the mirroring CSS updates if needed
+      setLocalStream(s => s ? new MediaStream(s.getTracks()) : s);
+      return;
+    } catch { /* not supported or failed — fall through */ }
+
+    // ── Method 2: stop + delay + getUserMedia ───────────────────────────────
+    // Required on older Android WebViews and iOS when applyConstraints fails.
+    currentTrack.stop();
+    localStreamRef.current?.removeTrack(currentTrack);
+
+    // Give the OS time to fully release the camera hardware (critical on Android)
+    await new Promise(r => setTimeout(r, 600));
+
+    let newTrack = null;
+
+    // 2a. exact facingMode
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: nextFacing } }, audio: false });
+      newTrack = s.getVideoTracks()[0] ?? null;
+    } catch { /* try next */ }
+
+    // 2b. ideal facingMode (less strict, wider device support)
+    if (!newTrack) {
       try {
-        const s = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: nextFacing }, ...constraints },
-          audio: false,
-        });
-        return s.getVideoTracks()[0] ?? null;
-      } catch {}
-      // Attempt B: ideal facingMode (less strict)
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: nextFacing, ...constraints },
-          audio: false,
-        });
-        return s.getVideoTracks()[0] ?? null;
-      } catch {}
-      // Attempt C: enumerate device IDs (last resort)
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === 'videoinput');
-        if (videoDevices.length > 1) {
-          const idx = videoDevices.findIndex(d => d.deviceId === currentCameraId);
-          const nextIdx = (idx + 1) % videoDevices.length;
-          const s = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: { ideal: videoDevices[nextIdx].deviceId } },
-            audio: false,
-          });
-          return s.getVideoTracks()[0] ?? null;
-        }
-      } catch {}
-      return null;
-    };
-
-    const replaceInPeerConnection = async (track) => {
-      if (!peerConnectionRef.current) return;
-      const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'video');
-      if (sender) try { await sender.replaceTrack(track); } catch {}
-    };
-
-    const sizeConstraints = { width: { ideal: 1280 }, height: { ideal: 720 } };
-
-    // ── Strategy 1: Android (front/back are separate hardware) ──
-    // Request new camera WITHOUT stopping current — avoids "Could not start video source"
-    let newTrack = await tryGetVideo(sizeConstraints);
-
-    if (newTrack) {
-      // Got new track without stopping old → replace then stop old
-      await replaceInPeerConnection(newTrack);
-      if (currentTrack) {
-        currentTrack.stop();
-        localStreamRef.current?.removeTrack(currentTrack);
-      }
-    } else {
-      // ── Strategy 2: iOS (only one camera stream at a time) ──
-      // Stop current track first, wait for OS to release, then request
-      if (currentTrack) {
-        currentTrack.stop();
-        localStreamRef.current?.removeTrack(currentTrack);
-      }
-      await new Promise(r => setTimeout(r, 400)); // wait for hardware release
-      newTrack = await tryGetVideo(sizeConstraints);
-      if (!newTrack) return; // both strategies failed silently
-      await replaceInPeerConnection(newTrack);
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: nextFacing }, audio: false });
+        newTrack = s.getVideoTracks()[0] ?? null;
+      } catch { /* try next */ }
     }
 
-    try { newTrack.contentHint = "motion"; } catch {}
+    // 2c. deviceId cycle (last resort for devices that ignore facingMode)
+    if (!newTrack) {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter(d => d.kind === 'videoinput');
+        if (cams.length > 1) {
+          const idx = cams.findIndex(d => d.deviceId === currentCameraId);
+          const next = cams[(idx + 1) % cams.length];
+          const s = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: next.deviceId } }, audio: false });
+          newTrack = s.getVideoTracks()[0] ?? null;
+        }
+      } catch { /* all methods exhausted */ }
+    }
+
+    if (!newTrack) return; // silent fail — no alert, no crash
+
+    try { newTrack.contentHint = "motion"; } catch { /* ignore */ }
+
+    // Replace track in the peer connection without renegotiation
+    if (peerConnectionRef.current) {
+      const sender = peerConnectionRef.current.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) try { await sender.replaceTrack(newTrack); } catch { /* ignore */ }
+    }
+
     localStreamRef.current?.addTrack(newTrack);
     setLocalStream(new MediaStream(localStreamRef.current?.getTracks() ?? []));
     setCurrentCameraId(newTrack.getSettings()?.deviceId ?? null);
