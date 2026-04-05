@@ -396,6 +396,12 @@ io.on('connection', async (socket) => {
     socket.to(roomId).emit('mic_state', { enabled: !!enabled });
   });
 
+  socket.on('request_ice_restart', (data) => {
+    const { roomId } = data || {};
+    if (!roomId) return;
+    socket.to(roomId).emit('request_ice_restart');
+  });
+
   socket.on('next', () => {
     handleDisconnectFromRoom(socket);
     socket.data.inMatch = false;

@@ -72,6 +72,10 @@ const Chat = () => {
   // Refs to read latest state inside stale socket closures
   const isVideoOffRef = useRef(false);
   const isMutedRef = useRef(false);
+  const remoteVideoActiveRef = useRef(false);
+  const remoteVideoOffRef = useRef(false);
+  const roleRef = useRef(null);
+  const remoteTrackTimerRef = useRef(null);
   const navigate = useNavigate();
 
   // --- Helper Functions ---
@@ -157,6 +161,10 @@ const Chat = () => {
     }
     setRemoteVideoActive(false);
     setRemotePlayBlocked(false);
+    if (remoteTrackTimerRef.current) {
+      clearTimeout(remoteTrackTimerRef.current);
+      remoteTrackTimerRef.current = null;
+    }
   }, []);
 
   const handleStop = useCallback(() => {
@@ -180,6 +188,7 @@ const Chat = () => {
   const initPeerConnection = useCallback(async (role, rId) => {
     cleanupPeerConnection();
     iceRestartedRef.current = false;
+    roleRef.current = role;
 
     // Master Logic: Wait for local stream if not yet ready
     let attempts = 0;
@@ -269,6 +278,25 @@ const Chat = () => {
     }
 
     processSignalingQueue();
+
+    if (remoteTrackTimerRef.current) clearTimeout(remoteTrackTimerRef.current);
+    remoteTrackTimerRef.current = setTimeout(async () => {
+      if (statusRef.current !== "connected") return;
+      if (roomIdRef.current !== rId) return;
+      if (remoteVideoActiveRef.current || remoteVideoOffRef.current) return;
+      if (remoteVideoRef.current?.srcObject) return;
+
+      if (roleRef.current === "caller" && peerConnectionRef.current) {
+        try {
+          const offer = await peerConnectionRef.current.createOffer({ iceRestart: true });
+          await peerConnectionRef.current.setLocalDescription(offer);
+          socket.emit("offer", { roomId: rId, sdp: offer });
+        } catch {}
+        return;
+      }
+
+      socket.emit("request_ice_restart", { roomId: rId });
+    }, 9000);
   }, [cleanupPeerConnection]);
 
   // --- Effects ---
@@ -276,6 +304,8 @@ const Chat = () => {
   // Keep refs in sync with state (for stale socket closures)
   useEffect(() => { isVideoOffRef.current = isVideoOff; }, [isVideoOff]);
   useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+  useEffect(() => { remoteVideoActiveRef.current = remoteVideoActive; }, [remoteVideoActive]);
+  useEffect(() => { remoteVideoOffRef.current = remoteVideoOff; }, [remoteVideoOff]);
 
   // Attach local stream to video element
   useEffect(() => {
@@ -520,6 +550,16 @@ const Chat = () => {
 
     socket.on("ice_candidate", handleIceCandidate);
 
+    socket.on("request_ice_restart", async () => {
+      if (roleRef.current !== "caller") return;
+      if (!peerConnectionRef.current || !roomIdRef.current) return;
+      try {
+        const offer = await peerConnectionRef.current.createOffer({ iceRestart: true });
+        await peerConnectionRef.current.setLocalDescription(offer);
+        socket.emit("offer", { roomId: roomIdRef.current, sdp: offer });
+      } catch {}
+    });
+
     socket.on("message", (data) => {
       setMessages((prev) => [...prev, { type: "stranger", text: data.text }]);
       if (isMobileRef.current && !isChatOpenRef.current) {
@@ -567,6 +607,7 @@ const Chat = () => {
       socket.off("offer");
       socket.off("answer");
       socket.off("ice_candidate");
+      socket.off("request_ice_restart");
       socket.off("message");
       socket.off("camera_state");
       socket.off("mic_state");
