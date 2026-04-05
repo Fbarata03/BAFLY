@@ -174,10 +174,23 @@ const VideoGrid = ({
         {/* Remote camera off overlay */}
         {remoteVideoOff && remoteVideoActive && status === 'connected' && (
           <div className="remote-camera-off-overlay">
-            <div className="placeholder-icon-circle">
-              <span className="material-icons">videocam_off</span>
+            <div className="cam-off-avatar">
+              <span className="material-icons">person</span>
             </div>
-            <p className="placeholder-text">Câmara desligada</p>
+            <div className="cam-off-name">
+              {remoteCountryCode && (
+                <img
+                  src={flagUrl(remoteCountryCode)}
+                  alt={remoteCountryCode}
+                  className="cam-off-flag"
+                />
+              )}
+              <span>STRANGER</span>
+            </div>
+            <div className="cam-off-status">
+              <span className="material-icons">videocam_off</span>
+              <span>Câmara desligada</span>
+            </div>
           </div>
         )}
 

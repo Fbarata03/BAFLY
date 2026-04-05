@@ -15,19 +15,19 @@ body {
   padding: 0;
   background-color: var(--bg-color);
   color: var(--text-white);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 button {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
   border-radius: 0;
 }
 
 input, select, textarea {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 code, pre {

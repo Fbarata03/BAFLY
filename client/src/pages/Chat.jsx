@@ -439,6 +439,11 @@ const Chat = () => {
           setCurrentCameraId(videoTrack.getSettings().deviceId);
         }
 
+        // Re-check camera count after permission granted (labels available now)
+        const afterDevices = await navigator.mediaDevices.enumerateDevices();
+        const afterVideoDevices = afterDevices.filter(d => d.kind === 'videoinput');
+        setHasMultipleCameras(afterVideoDevices.length > 1);
+
         emitJoinQueue();
       } catch (err) {
         console.error("Media error:", err);

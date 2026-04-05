@@ -29,8 +29,9 @@
 }
 
 .ctrl-btn .btn-label {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -142,10 +143,10 @@
 }
 
 .pill-label {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
-  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
