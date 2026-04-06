@@ -208,7 +208,6 @@ const Landing = () => {
     }
 
     // Verificar se utilizador está banido
-    const token = localStorage.getItem('auth_token');
     fetch(`${API_URL}/api/auth/ban-check`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
