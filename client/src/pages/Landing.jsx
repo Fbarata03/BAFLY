@@ -28,6 +28,43 @@ const DEFAULT_COUNTRY_OPTIONS = [
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
 
+const CATCHLINES = {
+  pt: 'O próximo clique pode mudar tudo.',
+  es: 'El próximo clic puede cambiarlo todo.',
+  fr: 'Le prochain clic peut tout changer.',
+  de: 'Der nächste Klick kann alles verändern.',
+  it: 'Il prossimo clic può cambiare tutto.',
+  ru: 'Следующий клик может изменить всё.',
+  ar: 'النقرة التالية قد تغيّر كل شيء.',
+  ja: '次のクリックがすべてを変えるかもしれない。',
+  ko: '다음 클릭이 모든 것을 바꿀 수 있다.',
+  zh: '下一次点击，可能改变一切。',
+  tr: 'Bir sonraki tıklama her şeyi değiştirebilir.',
+  pl: 'Następne kliknięcie może zmienić wszystko.',
+  nl: 'De volgende klik kan alles veranderen.',
+  hi: 'अगला क्लिक सब कुछ बदल सकता है।',
+  en: 'The next click might change everything.',
+};
+
+const getCatchline = (cc) => {
+  if (!cc) return CATCHLINES.en;
+  if (PT_COUNTRIES && PT_COUNTRIES.has(cc)) return CATCHLINES.pt;
+  if (ES_COUNTRIES && ES_COUNTRIES.has(cc)) return CATCHLINES.es;
+  if (FR_COUNTRIES && FR_COUNTRIES.has(cc)) return CATCHLINES.fr;
+  if (DE_COUNTRIES && DE_COUNTRIES.has(cc)) return CATCHLINES.de;
+  if (IT_COUNTRIES && IT_COUNTRIES.has(cc)) return CATCHLINES.it;
+  if (RU_COUNTRIES && RU_COUNTRIES.has(cc)) return CATCHLINES.ru;
+  if (AR_COUNTRIES && AR_COUNTRIES.has(cc)) return CATCHLINES.ar;
+  if (JA_COUNTRIES && JA_COUNTRIES.has(cc)) return CATCHLINES.ja;
+  if (KO_COUNTRIES && KO_COUNTRIES.has(cc)) return CATCHLINES.ko;
+  if (ZH_COUNTRIES && ZH_COUNTRIES.has(cc)) return CATCHLINES.zh;
+  if (TR_COUNTRIES && TR_COUNTRIES.has(cc)) return CATCHLINES.tr;
+  if (PL_COUNTRIES && PL_COUNTRIES.has(cc)) return CATCHLINES.pl;
+  if (NL_COUNTRIES && NL_COUNTRIES.has(cc)) return CATCHLINES.nl;
+  if (HI_COUNTRIES && HI_COUNTRIES.has(cc)) return CATCHLINES.hi;
+  return CATCHLINES.en;
+};
+
 const TAGLINES = {
   pt: ['Encontra estranhos.', 'Sem filtros.', 'Só vibes.'],
   es: ['Conoce extraños.', 'Sin filtros.', 'Solo vibras.'],
@@ -97,6 +134,30 @@ const getTaglineLines = (cc) => {
   if (HI_COUNTRIES.has(cc)) return TAGLINES.hi;
   return TAGLINES.en;
 };
+
+const LETTER_STAGGER = 0.038;
+const LINE_START_STAGGER = 0.32;
+
+const AnimatedTagline = ({ lines }) => (
+  <h1 className="tagline">
+    {lines.map((line, lineIdx) => {
+      const lineBaseDelay = 0.1 + lineIdx * LINE_START_STAGGER;
+      return (
+        <span key={`${line}-${lineIdx}`} className="tagline-line">
+          {line.split('').map((char, charIdx) => (
+            <span
+              key={charIdx}
+              className="letter-span"
+              style={{ animationDelay: `${lineBaseDelay + charIdx * LETTER_STAGGER}s` }}
+            >
+              {char === ' ' ? '\u00A0' : char}
+            </span>
+          ))}
+        </span>
+      );
+    })}
+  </h1>
+);
 
 const Landing = () => {
   const [gender, setGender] = useState('Any');
@@ -308,13 +369,7 @@ const Landing = () => {
       </header>
 
       <main className="landing-main">
-        <h1 className="tagline">
-          {getTaglineLines(localCountryCode).map((line, i) => (
-            <span key={`${localCountryCode}-${i}`} className="tagline-line" style={{ animationDelay: `${0.08 + i * 0.22}s` }}>
-              {line}
-            </span>
-          ))}
-        </h1>
+        <AnimatedTagline lines={getTaglineLines(localCountryCode)} />
         <OnlineBadge count={onlineCount} />
 
 
@@ -381,11 +436,7 @@ const Landing = () => {
             </div>
           </div>
         </div>
-        {localCountryCode ? (
-          <div style={{ color: 'var(--text-gray)', fontFamily: 'Space Mono, monospace', fontSize: '0.85rem' }}>
-            O teu país: {localCountryName || localCountryCode} ({localCountryCode})
-          </div>
-        ) : null}
+        <p className="catchline">{getCatchline(localCountryCode)}</p>
 
         <button className="start-btn" onClick={handleStart}>
           ▶ Start
