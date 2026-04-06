@@ -21,7 +21,19 @@ router.post('/', async (req, res) => {
 // Apenas admin
 router.get('/pending', requireAdmin, async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM reports WHERE status = $1 ORDER BY created_at DESC', ['pending']);
+    const result = await db.query(
+      `SELECT r.*,
+        u_rep.username AS reporter_name,
+        u_rep.email AS reporter_email,
+        u_rpt.username AS reported_name,
+        u_rpt.email AS reported_email
+       FROM reports r
+       LEFT JOIN users u_rep ON u_rep.id = r.reporter_id
+       LEFT JOIN users u_rpt ON u_rpt.id = r.reported_id
+       WHERE r.status = $1
+       ORDER BY r.created_at DESC`,
+      ['pending']
+    );
     res.json(result.rows);
   } catch (error) {
     console.error('Reports fetch error:', error);

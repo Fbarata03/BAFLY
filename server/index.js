@@ -11,6 +11,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const reportRoutes = require('./routes/reports');
 const statsRoutes = require('./routes/stats');
+const adminRoutes = require('./routes/admin');
 const initDB = require('./init_db');
 
 const app = express();
@@ -46,6 +47,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/healthz', (req, res) => {
