@@ -111,9 +111,10 @@ router.post('/login', async (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
     const normalizedUsername = String(username).trim();
 
-    if (normalizedUsername === 'admin' && String(password) === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign({ user: 'admin', role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      return res.json({ token, user: { username: 'admin', role: 'admin' } });
+    const adminUser = process.env.ADMIN_USERNAME || 'admin';
+    if (normalizedUsername === adminUser && String(password) === process.env.ADMIN_PASSWORD) {
+      const token = jwt.sign({ user: adminUser, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      return res.json({ token, user: { username: adminUser, role: 'admin' } });
     }
 
     const result = await db.query('SELECT id, username, password_hash FROM users WHERE username = $1 LIMIT 1', [normalizedUsername]);
