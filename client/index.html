@@ -2,7 +2,7 @@
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <!-- ── Favicon ── -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -83,8 +83,10 @@
         font-family: 'Inter', sans-serif;
         overflow-x: hidden;
         overscroll-behavior: none;
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
       }
-      #root { height: 100%; }
+      #root { height: 100%; min-height: 100dvh; }
       code, pre { font-family: 'Space Mono', monospace; }
     </style>
   </head>

@@ -350,11 +350,19 @@
     height: 100%;
   }
 
+  /* Status chip: abaixo da notch/dynamic island */
+  .status-overlay-chip {
+    top: calc(env(safe-area-inset-top, 0px) + 72px);
+    left: 16px;
+    font-size: 0.78rem;
+    padding: 6px 12px;
+  }
+
   /* Local video: PiP bottom-right (WhatsApp style) */
   .local-video-floating {
     position: absolute;
     bottom: calc(90px + env(safe-area-inset-bottom) + 16px);
-    right: 12px;
+    right: calc(12px + env(safe-area-inset-right, 0px));
     width: min(28vw, 105px);
     height: min(37vw, 140px);
     border-radius: 16px;

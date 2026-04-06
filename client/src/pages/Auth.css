@@ -6,7 +6,11 @@
   justify-content: center;
   background: #080c10;
   color: #ffffff;
-  padding: 20px;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px)
+           calc(env(safe-area-inset-right, 0px) + 20px)
+           calc(env(safe-area-inset-bottom, 0px) + 20px)
+           calc(env(safe-area-inset-left, 0px) + 20px);
+  box-sizing: border-box;
 }
 
 .auth-card {
