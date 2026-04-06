@@ -847,7 +847,6 @@ const Chat = () => {
           <div className="user-info-header" style={{marginLeft:'auto'}}>
             {user ? (
               <div style={{display:'flex', alignItems:'center', gap:10}}>
-                <span>{user.displayName || user.username}</span>
                 <button
                   onClick={() => {
                     localStorage.removeItem("auth_token");
