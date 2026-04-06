@@ -267,7 +267,7 @@ router.get('/facebook/start', (req, res) => {
   url.searchParams.set('client_id', process.env.FACEBOOK_APP_ID);
   url.searchParams.set('redirect_uri', process.env.FACEBOOK_REDIRECT_URI);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'public_profile,email');
+  url.searchParams.set('scope', 'public_profile');
   url.searchParams.set('state', state);
   return res.redirect(url.toString());
 });
