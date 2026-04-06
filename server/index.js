@@ -35,6 +35,9 @@ console.log('[ENV] CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
 // Initialize DB tables
 initDB();
 
+// Trust Railway/Netlify proxy
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());

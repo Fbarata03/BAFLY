@@ -70,39 +70,14 @@ const upsertOAuthUser = async ({ provider, providerId, email, displayName }) => 
   return { id, username };
 };
 
-const getGoogleCerts = async () => {
-  const res = await fetch('https://www.googleapis.com/oauth2/v3/certs', { method: 'GET' });
-  if (!res.ok) throw new Error('google_certs_fetch_failed');
-  const data = await res.json();
-  return data?.keys || [];
-};
-
 const verifyGoogleIdToken = async (idToken) => {
-  const parts = String(idToken).split('.');
-  if (parts.length !== 3) throw new Error('invalid_jwt');
-  const [h, p, s] = parts;
-  const header = JSON.parse(base64UrlToString(h));
-  const payload = JSON.parse(base64UrlToString(p));
-
-  const certs = await getGoogleCerts();
-  const key = certs.find((k) => k.kid === header.kid);
-  if (!key || !Array.isArray(key.x5c) || !key.x5c[0]) throw new Error('google_key_not_found');
-
-  const certBody = key.x5c[0].match(/.{1,64}/g).join('\n');
-  const pem = `-----BEGIN CERTIFICATE-----\n${certBody}\n-----END CERTIFICATE-----\n`;
-
-  const verifier = crypto.createVerify('RSA-SHA256');
-  verifier.update(`${h}.${p}`);
-  verifier.end();
-  const signatureOk = verifier.verify(pem, base64UrlToBuffer(s));
-  if (!signatureOk) throw new Error('invalid_signature');
-
-  const issOk = payload.iss === 'https://accounts.google.com' || payload.iss === 'accounts.google.com';
-  if (!issOk) throw new Error('invalid_issuer');
+  const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+  if (!res.ok) throw new Error('google_tokeninfo_failed');
+  const payload = await res.json();
+  if (payload.error) throw new Error(payload.error);
   if (payload.aud !== process.env.GOOGLE_CLIENT_ID) throw new Error('invalid_audience');
   if (!payload.sub) throw new Error('missing_sub');
-  if (!payload.exp || Date.now() / 1000 >= payload.exp) throw new Error('token_expired');
-
+  if (payload.exp && Date.now() / 1000 >= Number(payload.exp)) throw new Error('token_expired');
   return payload;
 };
 
