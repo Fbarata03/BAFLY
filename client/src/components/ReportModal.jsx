@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { socket } from '../socket';
 import './ReportModal.css';
 
-const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
 const API_URL =
   window.location.hostname === "localhost"
     ? ""

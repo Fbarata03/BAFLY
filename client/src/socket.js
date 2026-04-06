@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const PROD_BACKEND = 'https://bafly-server-production.up.railway.app';
+const PROD_BACKEND = 'https://bafly-server-production-49a3.up.railway.app';
 
 const isHostedFrontend =
   window.location.hostname === 'bafly.net' ||

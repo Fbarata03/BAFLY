@@ -22,7 +22,7 @@ const ICE_SERVERS = {
   ],
 };
 
-const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
 const API_URL =
   window.location.hostname === "localhost"
     ? ""
