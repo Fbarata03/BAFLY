@@ -35,17 +35,6 @@ const Controls = ({
           <span className="pill-label">Câmara</span>
         </button>
 
-        {hasMultipleCameras && (
-          <button
-            className="pill-btn grey"
-            onClick={onSwitchCamera}
-            aria-label="Virar câmara"
-          >
-            <span className="material-icons">cameraswitch</span>
-            <span className="pill-label">Virar</span>
-          </button>
-        )}
-
         <button
           className={`pill-btn ${isMuted ? 'grey' : 'white'}`}
           onClick={onMute}

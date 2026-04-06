@@ -28,11 +28,81 @@ const DEFAULT_COUNTRY_OPTIONS = [
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
 
+const TAGLINES = {
+  pt: ['Encontra estranhos.', 'Sem filtros.', 'Só vibes.'],
+  es: ['Conoce extraños.', 'Sin filtros.', 'Solo vibras.'],
+  fr: ['Rencontre des inconnus.', 'Sans filtres.', 'Juste des vibes.'],
+  de: ['Triff Fremde.', 'Keine Filter.', 'Einfach Vibes.'],
+  it: ['Incontra sconosciuti.', 'Nessun filtro.', 'Solo vibes.'],
+  ru: ['Знакомься.', 'Без фильтров.', 'Только вайбы.'],
+  ar: ['قابل غرباء.', 'بلا فلاتر.', 'فقط الأجواء.'],
+  ja: ['見知らぬ人に会おう。', 'フィルターなし。', 'ただのバイブス。'],
+  ko: ['낯선 사람을 만나세요.', '필터 없음.', '그냥 바이브.'],
+  zh: ['遇见陌生人。', '无滤镜。', '纯粹氛围。'],
+  tr: ['Yabancılarla tanış.', 'Filtre yok.', 'Sadece vibe.'],
+  pl: ['Poznaj nieznajomych.', 'Bez filtrów.', 'Tylko wibracje.'],
+  nl: ['Ontmoet vreemden.', 'Geen filters.', 'Gewoon vibes.'],
+  hi: ['अजनबियों से मिलो.', 'कोई फिल्टर नहीं.', 'बस वाइब्स.'],
+  en: ['Meet strangers.', 'No filters.', 'Just vibes.'],
+};
+const PT_COUNTRIES = new Set(['PT','BR','AO','MZ','CV','GW','ST','TL','GQ','MO']);
+const ES_COUNTRIES = new Set(['ES','MX','AR','CO','CL','PE','VE','EC','BO','PY','UY','CR','PA','DO','HN','GT','SV','NI','CU','PR']);
+const FR_COUNTRIES = new Set(['FR','BE','CH','SN','CI','CM','ML','BF','NE','TG','BJ','GN','CD','CG','MG','DZ','TN','MA']);
+const DE_COUNTRIES = new Set(['DE','AT','LI']);
+const IT_COUNTRIES = new Set(['IT','SM']);
+const RU_COUNTRIES = new Set(['RU','BY','KZ']);
+const AR_COUNTRIES = new Set(['SA','AE','EG','IQ','SY','JO','LB','KW','QA','BH','OM','YE','LY','SD']);
+const JA_COUNTRIES = new Set(['JP']);
+const KO_COUNTRIES = new Set(['KR']);
+const ZH_COUNTRIES = new Set(['CN','TW','HK','SG']);
+const TR_COUNTRIES = new Set(['TR']);
+const PL_COUNTRIES = new Set(['PL']);
+const NL_COUNTRIES = new Set(['NL']);
+const HI_COUNTRIES = new Set(['IN']);
+
+const getBrowserCountryCode = () => {
+  const lang = (navigator.language || '').toLowerCase();
+  if (lang.startsWith('pt')) return 'PT';
+  if (lang.startsWith('es')) return 'ES';
+  if (lang.startsWith('fr')) return 'FR';
+  if (lang.startsWith('de')) return 'DE';
+  if (lang.startsWith('it')) return 'IT';
+  if (lang.startsWith('ru')) return 'RU';
+  if (lang.startsWith('ar')) return 'SA';
+  if (lang.startsWith('ja')) return 'JP';
+  if (lang.startsWith('ko')) return 'KR';
+  if (lang.startsWith('zh')) return 'CN';
+  if (lang.startsWith('tr')) return 'TR';
+  if (lang.startsWith('pl')) return 'PL';
+  if (lang.startsWith('nl')) return 'NL';
+  if (lang.startsWith('hi')) return 'IN';
+  return null;
+};
+
+const getTaglineLines = (cc) => {
+  if (!cc) return TAGLINES.en;
+  if (PT_COUNTRIES.has(cc)) return TAGLINES.pt;
+  if (ES_COUNTRIES.has(cc)) return TAGLINES.es;
+  if (FR_COUNTRIES.has(cc)) return TAGLINES.fr;
+  if (DE_COUNTRIES.has(cc)) return TAGLINES.de;
+  if (IT_COUNTRIES.has(cc)) return TAGLINES.it;
+  if (RU_COUNTRIES.has(cc)) return TAGLINES.ru;
+  if (AR_COUNTRIES.has(cc)) return TAGLINES.ar;
+  if (JA_COUNTRIES.has(cc)) return TAGLINES.ja;
+  if (KO_COUNTRIES.has(cc)) return TAGLINES.ko;
+  if (ZH_COUNTRIES.has(cc)) return TAGLINES.zh;
+  if (TR_COUNTRIES.has(cc)) return TAGLINES.tr;
+  if (PL_COUNTRIES.has(cc)) return TAGLINES.pl;
+  if (NL_COUNTRIES.has(cc)) return TAGLINES.nl;
+  if (HI_COUNTRIES.has(cc)) return TAGLINES.hi;
+  return TAGLINES.en;
+};
+
 const Landing = () => {
   const [gender, setGender] = useState('Any');
   const [country, setCountry] = useState('Any');
   const [countryOptions, setCountryOptions] = useState(DEFAULT_COUNTRY_OPTIONS);
-  const [localCountryCode, setLocalCountryCode] = useState(null);
+  const [localCountryCode, setLocalCountryCode] = useState(getBrowserCountryCode);
   const [localCountryName, setLocalCountryName] = useState(null);
   const [onlineCount, setOnlineCount] = useState(0);
   const [queueCount, setQueueCount] = useState(0);
@@ -238,7 +308,13 @@ const Landing = () => {
       </header>
 
       <main className="landing-main">
-        <h1 className="tagline">Meet strangers. No filters. Just vibes.</h1>
+        <h1 className="tagline">
+          {getTaglineLines(localCountryCode).map((line, i) => (
+            <span key={`${localCountryCode}-${i}`} className="tagline-line" style={{ animationDelay: `${0.08 + i * 0.22}s` }}>
+              {line}
+            </span>
+          ))}
+        </h1>
         <OnlineBadge count={onlineCount} />
 
 
@@ -315,9 +391,6 @@ const Landing = () => {
           ▶ Start
         </button>
 
-        <div className="features">
-          <span>Anónimo</span> · <span>Sem registo</span> · <span>Grátis</span> · <span>Worldwide</span>
-        </div>
       </main>
     </div>
   );
