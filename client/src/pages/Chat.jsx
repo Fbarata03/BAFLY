@@ -5,6 +5,7 @@ import VideoGrid from "../components/VideoGrid";
 import ChatBox from "../components/ChatBox";
 import Controls from "../components/Controls";
 import ReportModal from "../components/ReportModal";
+import BanScreen from "../components/BanScreen";
 import "./Chat.css";
 
 const ICE_SERVERS = {
@@ -54,6 +55,8 @@ const Chat = () => {
   const [isChatOpen, setIsChatOpen] = useState(() => !window.matchMedia("(max-width: 900px)").matches);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [callDuration, setCallDuration] = useState(0);
+  const [banInfo, setBanInfo] = useState(null);
+  const [reportScreenshot, setReportScreenshot] = useState(null);
 
   const peerConfigRef = useRef(ICE_SERVERS);
   const icePromiseRef = useRef(null);
@@ -629,6 +632,10 @@ const Chat = () => {
       cleanupPeerConnection();
     });
 
+    socket.on("banned", (data) => {
+      setBanInfo({ reason: data?.reason || 'Violação dos termos de serviço', expires_at: data?.expires_at || null });
+    });
+
     return () => {
       cleanupPeerConnection();
       if (localStreamRef.current) {
@@ -780,6 +787,10 @@ const Chat = () => {
     setCurrentCameraId(newTrack.getSettings()?.deviceId ?? null);
   };
 
+  if (banInfo) {
+    return <BanScreen reason={banInfo.reason} expiresAt={banInfo.expires_at} onContinue={() => navigate('/')} />;
+  }
+
   return (
     <div className="chat-page">
       {isMobile ? (
@@ -802,7 +813,18 @@ const Chat = () => {
                 : "Desconectado"}
             </span>
           </div>
-          <button className="call-hdr-btn" onClick={() => setShowReportModal(true)} aria-label="Reportar">
+          <button className="call-hdr-btn" onClick={() => {
+            try {
+              const video = remoteVideoRef.current;
+              if (video && video.videoWidth > 0) {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                setReportScreenshot(canvas.toDataURL('image/jpeg', 0.6));
+              }
+            } catch {}
+            setShowReportModal(true);
+          }} aria-label="Reportar">
             <span className="material-icons">flag</span>
           </button>
         </header>
@@ -880,7 +902,18 @@ const Chat = () => {
             disabled={false}
             showClose={isMobile}
             onClose={() => setIsChatOpen(false)}
-            onReport={() => setShowReportModal(true)}
+            onReport={() => {
+              try {
+                const video = remoteVideoRef.current;
+                if (video && video.videoWidth > 0) {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                  canvas.getContext('2d').drawImage(video, 0, 0);
+                  setReportScreenshot(canvas.toDataURL('image/jpeg', 0.6));
+                }
+              } catch {}
+              setShowReportModal(true);
+            }}
             isOpen={!isMobile || isChatOpen}
           />
         ) : null}
@@ -893,7 +926,20 @@ const Chat = () => {
         onVideoOff={toggleVideo}
         onSwitchCamera={handleSwitchCamera}
         hasMultipleCameras={hasMultipleCameras}
-        onReport={() => setShowReportModal(true)}
+        onReport={() => {
+          // Capturar screenshot do vídeo do estranho
+          try {
+            const video = remoteVideoRef.current;
+            if (video && video.videoWidth > 0) {
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              canvas.getContext('2d').drawImage(video, 0, 0);
+              setReportScreenshot(canvas.toDataURL('image/jpeg', 0.6));
+            }
+          } catch {}
+          setShowReportModal(true);
+        }}
         isMuted={isMuted}
         isVideoOff={isVideoOff}
         isMobile={isMobile}
@@ -903,8 +949,9 @@ const Chat = () => {
 
       {showReportModal && (
         <ReportModal
-          onClose={() => setShowReportModal(false)}
+          onClose={() => { setShowReportModal(false); setReportScreenshot(null); }}
           reportedId={partnerSocketId}
+          screenshot={reportScreenshot}
         />
       )}
     </div>

@@ -1,0 +1,142 @@
+.ban-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #07090d;
+  padding: 24px;
+}
+
+.ban-card {
+  width: 100%;
+  max-width: 420px;
+  background: #0d1117;
+  border: 1px solid rgba(255, 68, 85, 0.2);
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: ban-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ban-in {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.ban-logo {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.logo-ba { color: #00ff88; }
+.logo-fly { color: #fff; }
+
+.ban-icon {
+  font-size: 3.5rem;
+  color: #ff4455;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px rgba(255, 68, 85, 0.4));
+}
+
+.ban-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ff4455;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.ban-title.restored {
+  color: #00ff88;
+}
+
+.ban-reason {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  padding: 10px 16px;
+  background: rgba(255, 68, 85, 0.07);
+  border: 1px solid rgba(255, 68, 85, 0.15);
+  border-radius: 10px;
+  width: 100%;
+}
+
+.ban-permanent {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  padding: 12px 20px;
+  border: 1px dashed rgba(255, 68, 85, 0.3);
+  border-radius: 10px;
+  width: 100%;
+}
+
+.ban-countdown-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+  background: rgba(255, 68, 85, 0.05);
+  border: 1px solid rgba(255, 68, 85, 0.15);
+  border-radius: 14px;
+}
+
+.ban-countdown-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+.ban-countdown {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: 'Space Mono', monospace;
+  color: #ff4455;
+  letter-spacing: 2px;
+}
+
+.ban-countdown-date {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.ban-appeal {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.25);
+  margin: 0;
+}
+
+.ban-desc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.ban-continue-btn {
+  background: #00ff88;
+  color: #000;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ban-continue-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}

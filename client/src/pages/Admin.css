@@ -345,6 +345,43 @@
   font-weight: 600;
 }
 
+.adm-report-screenshot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-report-screenshot label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--adm-muted);
+}
+
+.adm-report-screenshot a {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.adm-screenshot-thumb {
+  width: 100%;
+  max-width: 280px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--adm-border);
+  transition: opacity 0.2s;
+}
+
+.adm-screenshot-thumb:hover { opacity: 0.85; }
+
+.adm-screenshot-hint {
+  font-size: 0.7rem;
+  color: var(--adm-muted);
+}
+
 .adm-report-actions {
   display: flex;
   flex-wrap: wrap;

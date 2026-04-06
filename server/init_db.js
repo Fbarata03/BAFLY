@@ -43,6 +43,10 @@ const createTables = async () => {
       await db.query('CREATE UNIQUE INDEX users_provider_unique ON users (provider, provider_id)');
     } catch (e) {}
 
+    try {
+      await db.query('ALTER TABLE reports ADD COLUMN screenshot MEDIUMTEXT NULL');
+    } catch (e) {}
+
     await db.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         id INT AUTO_INCREMENT PRIMARY KEY,

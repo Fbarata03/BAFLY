@@ -10,7 +10,7 @@ const API_URL =
       ? PROD_BACKEND
       : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
-const ReportModal = ({ onClose, reportedId }) => {
+const ReportModal = ({ onClose, reportedId, screenshot }) => {
   const [reason, setReason] = useState('Spam');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +33,8 @@ const ReportModal = ({ onClose, reportedId }) => {
           reported_id: reportedId,
           reason,
           description,
-          reporter_id: socket.id
+          reporter_id: socket.id,
+          screenshot: screenshot || null
         })
       });
 
@@ -85,6 +86,12 @@ const ReportModal = ({ onClose, reportedId }) => {
                 />
               </div>
 
+              {screenshot && (
+                <div className="form-group">
+                  <label>Captura de ecrã</label>
+                  <img src={screenshot} alt="Captura" style={{ width: '100%', borderRadius: 8, maxHeight: 160, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={onClose}>Cancelar</button>
                 <button type="submit" className="submit-btn" disabled={isSubmitting || !reportedId}>

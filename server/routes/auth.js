@@ -314,4 +314,24 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Ban check — verifica por IP e userId se autenticado
+router.get('/ban-check', async (req, res) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const token = (req.headers.authorization || '').replace('Bearer ', '');
+  let userId = null;
+  if (token) {
+    try { const p = jwt.verify(token, process.env.JWT_SECRET); userId = p.userId || null; } catch {}
+  }
+  try {
+    const result = userId
+      ? await db.query('SELECT reason, expires_at FROM bans WHERE (ip = $1 OR user_id = $2) AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1', [ip, userId])
+      : await db.query('SELECT reason, expires_at FROM bans WHERE ip = $1 AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1', [ip]);
+    if (result.rows.length > 0) {
+      const b = result.rows[0];
+      return res.json({ banned: true, reason: b.reason, expires_at: b.expires_at });
+    }
+    return res.json({ banned: false });
+  } catch { return res.json({ banned: false }); }
+});
+
 module.exports = router;

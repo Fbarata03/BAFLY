@@ -5,11 +5,11 @@ const requireAdmin = require('../middleware/requireAdmin');
 
 // Qualquer utilizador pode submeter um report
 router.post('/', async (req, res) => {
-  const { reporter_id, reported_id, reason, description } = req.body;
+  const { reporter_id, reported_id, reason, description, screenshot } = req.body;
   try {
     await db.query(
-      'INSERT INTO reports (reporter_id, reported_id, reason, description, status) VALUES ($1, $2, $3, $4, $5)',
-      [reporter_id, reported_id, reason, description, 'pending']
+      'INSERT INTO reports (reporter_id, reported_id, reason, description, status, screenshot) VALUES ($1, $2, $3, $4, $5, $6)',
+      [reporter_id, reported_id, reason, description, 'pending', screenshot || null]
     );
     res.status(201).json({ message: 'Report submitted' });
   } catch (error) {

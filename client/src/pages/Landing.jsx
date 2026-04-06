@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../socket';
 import OnlineBadge from '../components/OnlineBadge';
+import BanScreen from '../components/BanScreen';
 import './Landing.css';
 
 const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
@@ -173,6 +174,7 @@ const Landing = () => {
   const countryRef = useRef(null);
   const countryTouchedRef = useRef(false);
   const [simple, setSimple] = useState(!localStorage.getItem('auth_token') && !localStorage.getItem('auth_user'));
+  const [banInfo, setBanInfo] = useState(null);
 
   useEffect(() => {
     socket.on('online_count', (count) => setOnlineCount(count));
@@ -204,6 +206,15 @@ const Landing = () => {
         })
         .catch(() => {});
     }
+
+    // Verificar se utilizador está banido
+    const token = localStorage.getItem('auth_token');
+    fetch(`${API_URL}/api/auth/ban-check`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+      .then(r => r.json().catch(() => ({})))
+      .then(d => { if (d?.banned) setBanInfo({ reason: d.reason, expires_at: d.expires_at }); })
+      .catch(() => {});
 
     return () => {
       socket.off('online_count');
@@ -271,6 +282,10 @@ const Landing = () => {
     sessionStorage.setItem('chat_filters', JSON.stringify({ gender, country }));
     navigate('/chat');
   };
+
+  if (banInfo) {
+    return <BanScreen reason={banInfo.reason} expiresAt={banInfo.expires_at} onContinue={() => setBanInfo(null)} />;
+  }
 
   if (simple) {
     return (

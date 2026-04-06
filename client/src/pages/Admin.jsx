@@ -266,6 +266,15 @@ const Admin = () => {
                     </div>
                   )}
                 </div>
+                {r.screenshot && (
+                  <div className="adm-report-screenshot">
+                    <label>Captura de ecrã</label>
+                    <a href={r.screenshot} target="_blank" rel="noopener noreferrer">
+                      <img src={r.screenshot} alt="Captura" className="adm-screenshot-thumb" />
+                      <span className="adm-screenshot-hint">Clica para ver em tamanho real</span>
+                    </a>
+                  </div>
+                )}
                 <div className="adm-report-actions">
                   <button className="adm-btn-dismiss" onClick={() => dismissReport(r.id)}>Dispensar</button>
                   <div className="adm-ban-group">
