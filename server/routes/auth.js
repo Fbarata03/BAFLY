@@ -158,6 +158,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/google/start', (req, res) => {
+  console.log('[GOOGLE_START] ID:', !!process.env.GOOGLE_CLIENT_ID, '| SEC:', !!process.env.GOOGLE_CLIENT_SECRET, '| URI:', !!process.env.GOOGLE_REDIRECT_URI);
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REDIRECT_URI) {
     if (String(process.env.OAUTH_DEV_MODE).toLowerCase() === 'true') {
       (async () => {
@@ -236,6 +237,7 @@ router.get('/google/callback', async (req, res) => {
 });
 
 router.get('/facebook/start', (req, res) => {
+  console.log('[FACEBOOK_START] ID:', !!process.env.FACEBOOK_APP_ID, '| SEC:', !!process.env.FACEBOOK_APP_SECRET, '| URI:', !!process.env.FACEBOOK_REDIRECT_URI);
   if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET || !process.env.FACEBOOK_REDIRECT_URI) {
     if (String(process.env.OAUTH_DEV_MODE).toLowerCase() === 'true') {
       (async () => {
