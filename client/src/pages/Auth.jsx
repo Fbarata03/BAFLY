@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
+const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? ""
+    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+      ? PROD_BACKEND
+      : import.meta.env.VITE_API_URL || PROD_BACKEND;
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +38,7 @@ const Auth = () => {
     localStorage.setItem('auth_token', token);
     (async () => {
       try {
-        const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.user) {
           localStorage.setItem('auth_user', JSON.stringify(data.user));
@@ -46,7 +54,7 @@ const Auth = () => {
     setSuccess('');
     setLoading(true);
 
-    const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const endpoint = mode === 'register' ? `${API_URL}/api/auth/register` : `${API_URL}/api/auth/login`;
     
     try {
       const res = await fetch(endpoint, {
