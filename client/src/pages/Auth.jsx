@@ -33,8 +33,6 @@ const Auth = () => {
   useEffect(() => {
     const token = params.get('token');
     if (!token) return;
-    
-    // Handle OAuth tokens if they still arrive (though UI is removed)
     localStorage.setItem('auth_token', token);
     (async () => {
       try {
@@ -42,9 +40,9 @@ const Auth = () => {
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.user) {
           localStorage.setItem('auth_user', JSON.stringify(data.user));
-          navigate('/');
         }
       } catch {}
+      navigate('/');
     })();
   }, [location.search, navigate, params]);
 
@@ -92,6 +90,20 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // Se há token OAuth no URL, mostra só ecrã de carregamento
+  if (params.get('token')) {
+    return (
+      <div className="auth-page">
+        <div style={{ textAlign: 'center', color: '#00ff88' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '16px' }}>
+            <span style={{ fontWeight: 900 }}>BA</span><span style={{ color: '#fff', fontWeight: 900 }}>FLY</span>
+          </div>
+          <div style={{ color: '#a0a0a0', fontSize: '0.95rem' }}>A entrar...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">
