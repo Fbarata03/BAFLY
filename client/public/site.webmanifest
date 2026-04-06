@@ -1,0 +1,18 @@
+{
+  "name": "BAFLY — Chat de Vídeo com Estranhos",
+  "short_name": "BAFLY",
+  "description": "Chat de vídeo em tempo real com estranhos. Anónimo, grátis e worldwide.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080c10",
+  "theme_color": "#080c10",
+  "lang": "pt",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

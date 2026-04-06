@@ -1,14 +1,71 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>BAFLY — Real-time Video Chat</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- ── Favicon ── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- ── SEO Principal ── -->
+    <title>BAFLY — Chat de Vídeo com Estranhos | Anónimo e Grátis</title>
+    <meta name="description" content="Fala com pessoas de todo o mundo em vídeo ao vivo. Anónimo, sem registo e completamente grátis. A melhor alternativa ao Omegle em Português." />
+    <meta name="keywords" content="bafly, chat video, chat com estranhos, omegle alternativa, video chat gratis, chat anonimo, chat video portugal, chat video brasil, meet strangers, video chat" />
+    <meta name="author" content="BAFLY" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://bafly.net/" />
+    <meta http-equiv="content-language" content="pt" />
+
+    <!-- ── Open Graph (Facebook, WhatsApp, LinkedIn) ── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bafly.net/" />
+    <meta property="og:title" content="BAFLY — Chat de Vídeo com Estranhos" />
+    <meta property="og:description" content="Fala com pessoas de todo o mundo em vídeo ao vivo. Anónimo, sem registo e grátis." />
+    <meta property="og:site_name" content="BAFLY" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- ── Twitter / X Card ── -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="BAFLY — Chat de Vídeo com Estranhos" />
+    <meta name="twitter:description" content="Fala com pessoas de todo o mundo em vídeo ao vivo. Anónimo, sem registo e grátis." />
+
+    <!-- ── PWA / App ── -->
+    <meta name="theme-color" content="#080c10" />
+    <meta name="application-name" content="BAFLY" />
+    <meta name="apple-mobile-web-app-title" content="BAFLY" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- ── Dados Estruturados JSON-LD (Google) ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "BAFLY",
+      "url": "https://bafly.net",
+      "description": "Chat de vídeo em tempo real com estranhos de todo o mundo. Anónimo, sem registo e completamente grátis.",
+      "applicationCategory": "CommunicationApplication",
+      "operatingSystem": "Web",
+      "inLanguage": ["pt", "en"],
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      }
+    }
+    </script>
+
+    <!-- ── Fonts ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <style>
       :root {
         --bg-color: #080c10;
@@ -17,9 +74,7 @@
         --text-white: #ffffff;
         --text-gray: #a0a0a0;
       }
-      html, body {
-        height: 100%;
-      }
+      html, body { height: 100%; }
       body {
         margin: 0;
         padding: 0;
@@ -29,12 +84,8 @@
         overflow-x: hidden;
         overscroll-behavior: none;
       }
-      #root {
-        height: 100%;
-      }
-      code, pre {
-        font-family: 'Space Mono', monospace;
-      }
+      #root { height: 100%; }
+      code, pre { font-family: 'Space Mono', monospace; }
     </style>
   </head>
   <body>
