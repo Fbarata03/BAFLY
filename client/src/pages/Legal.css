@@ -99,6 +99,14 @@
   color: #ffffff;
 }
 
+.legal-owner {
+  margin-top: 48px;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.2);
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
 .legal-footer {
   display: flex;
   align-items: center;
