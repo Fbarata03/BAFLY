@@ -13,6 +13,7 @@ const reportRoutes = require('./routes/reports');
 const statsRoutes = require('./routes/stats');
 const adminRoutes = require('./routes/admin');
 const initDB = require('./init_db');
+const { startCleanupScheduler } = require('./cleanup');
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,9 @@ console.log('[ENV] CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
 
 // Initialize DB tables
 initDB();
+
+// Limpeza automática diária
+startCleanupScheduler();
 
 // Trust Railway/Netlify proxy
 app.set('trust proxy', 1);
