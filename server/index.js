@@ -23,9 +23,12 @@ const io = new Server(server, {
 });
 
 // Log OAuth config status on startup
-console.log('[ENV] GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.slice(0, 12) + '...' : 'MISSING');
+console.log('[ENV] GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING');
 console.log('[ENV] GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING');
-console.log('[ENV] FACEBOOK_APP_ID:', process.env.FACEBOOK_APP_ID ? process.env.FACEBOOK_APP_ID.slice(0, 6) + '...' : 'MISSING');
+console.log('[ENV] GOOGLE_REDIRECT_URI:', process.env.GOOGLE_REDIRECT_URI || 'MISSING');
+console.log('[ENV] FACEBOOK_APP_ID:', process.env.FACEBOOK_APP_ID ? 'SET' : 'MISSING');
+console.log('[ENV] FACEBOOK_APP_SECRET:', process.env.FACEBOOK_APP_SECRET ? 'SET' : 'MISSING');
+console.log('[ENV] FACEBOOK_REDIRECT_URI:', process.env.FACEBOOK_REDIRECT_URI || 'MISSING');
 console.log('[ENV] OAUTH_DEV_MODE:', process.env.OAUTH_DEV_MODE);
 console.log('[ENV] CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
 
