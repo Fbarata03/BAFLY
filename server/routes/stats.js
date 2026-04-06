@@ -29,7 +29,7 @@ router.get('/summary', requireAdmin, async (req, res) => {
     const avgSessionTime = await db.query(
       isD1
         ? "SELECT AVG((julianday(ended_at) - julianday(started_at)) * 86400) as avg FROM sessions WHERE ended_at IS NOT NULL"
-        : 'SELECT AVG(EXTRACT(EPOCH FROM (ended_at - started_at))) as avg FROM sessions WHERE ended_at IS NOT NULL',
+        : 'SELECT AVG(TIMESTAMPDIFF(SECOND, started_at, ended_at)) as avg FROM sessions WHERE ended_at IS NOT NULL',
     );
 
     res.json({
