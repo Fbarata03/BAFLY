@@ -109,6 +109,9 @@ const createTables = async () => {
       )
     `);
 
+    // Limpar online_now ao arrancar (entradas antigas de sessões anteriores)
+    await db.query('DELETE FROM online_now WHERE 1=1').catch(() => {});
+
     console.log("MySQL tables initialized successfully!");
   } catch (err) {
     console.error("Error initializing MySQL tables:", err);
