@@ -1,98 +1,151 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Admin.css';
 
+const PROD_BACKEND = "https://bafly-server-production.up.railway.app";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? ""
+    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+      ? PROD_BACKEND
+      : import.meta.env.VITE_API_URL || PROD_BACKEND;
+
+const formatDuration = (seconds) => {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+};
+
 const Admin = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('admin_token'));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [stats, setStats] = useState({
-    sessionsToday: 0,
-    onlineNow: 0,
-    pendingReports: 0,
-    avgSessionTime: '00:00'
-  });
+  const [loginError, setLoginError] = useState('');
+  const [stats, setStats] = useState({ sessionsToday: 0, onlineNow: 0, pendingReports: 0, avgSessionTime: 0 });
   const [reports, setReports] = useState([]);
+  const [dailyStats, setDailyStats] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const authHeader = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+  });
+
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [statsRes, reportsRes, dailyRes] = await Promise.all([
+        fetch(`${API_URL}/api/stats/summary`, { headers: authHeader() }),
+        fetch(`${API_URL}/api/reports/pending`, { headers: authHeader() }),
+        fetch(`${API_URL}/api/stats/daily`, { headers: authHeader() }),
+      ]);
+
+      if (statsRes.status === 401 || statsRes.status === 403) {
+        localStorage.removeItem('admin_token');
+        setIsLoggedIn(false);
+        return;
+      }
+
+      if (statsRes.ok) setStats(await statsRes.json());
+      if (reportsRes.ok) setReports(await reportsRes.json());
+      if (dailyRes.ok) setDailyStats(await dailyRes.json());
+    } catch (err) {
+      console.error('Fetch failed', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchDashboardData();
+      const interval = setInterval(fetchDashboardData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn, fetchDashboardData]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoginError('');
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      if (res.ok) {
-        const { token } = await res.json();
-        localStorage.setItem('admin_token', token);
+      const data = await res.json();
+      if (res.ok && data.token && data.user?.role === 'admin') {
+        localStorage.setItem('admin_token', data.token);
         setIsLoggedIn(true);
-        fetchDashboardData();
       } else {
-        alert('Invalid credentials');
+        setLoginError('Credenciais inválidas ou sem permissão de admin.');
       }
     } catch (err) {
-      console.error("Login failed", err);
-    }
-  };
-
-  const fetchDashboardData = async () => {
-    try {
-      const statsRes = await fetch('/api/stats/summary');
-      const statsData = await statsRes.json();
-      setStats(statsData);
-
-      const reportsRes = await fetch('/api/reports/pending');
-      const reportsData = await reportsRes.json();
-      setReports(reportsData);
-    } catch (err) {
-      console.error("Fetch failed", err);
+      setLoginError('Erro de ligação ao servidor.');
     }
   };
 
   const handleDismiss = async (id) => {
     try {
-      await fetch(`/api/reports/dismiss/${id}`, { method: 'POST' });
+      await fetch(`${API_URL}/api/reports/dismiss/${id}`, { method: 'POST', headers: authHeader() });
       fetchDashboardData();
     } catch (err) {
-      console.error("Dismiss failed", err);
+      console.error('Dismiss failed', err);
     }
   };
 
   const handleBan = async (userId) => {
+    if (!window.confirm('Tens a certeza que queres banir este utilizador por 7 dias?')) return;
     try {
-      await fetch('/api/reports/ban', {
+      await fetch(`${API_URL}/api/reports/ban`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeader(),
         body: JSON.stringify({
           user_id: userId,
-          reason: 'Banned by Admin',
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+          reason: 'Violação dos termos de serviço',
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         })
       });
       fetchDashboardData();
     } catch (err) {
-      console.error("Ban failed", err);
+      console.error('Ban failed', err);
     }
   };
+
+  // Gráfico com dados reais
+  const chartData = dailyStats.length > 0
+    ? [...dailyStats].reverse().map(d => ({
+        label: new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short' }),
+        value: Number(d.total_sessions) || 0
+      }))
+    : [];
+  const maxVal = chartData.length > 0 ? Math.max(...chartData.map(d => d.value), 1) : 1;
 
   if (!isLoggedIn) {
     return (
       <div className="admin-login-page">
         <div className="login-card">
-          <h2>BAFLY ADMIN</h2>
+          <div className="admin-logo">
+            <span className="logo-ba">BA</span><span className="logo-fly">FLY</span>
+          </div>
+          <h2>Painel de Administração</h2>
+          {loginError && <div className="login-error">{loginError}</div>}
           <form onSubmit={handleLogin}>
-            <input 
-              type="text" 
-              placeholder="Username" 
-              value={username} 
-              onChange={e => setUsername(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Utilizador"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
             />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
             />
-            <button type="submit">LOGIN</button>
+            <button type="submit">ENTRAR</button>
           </form>
         </div>
       </div>
@@ -102,70 +155,86 @@ const Admin = () => {
   return (
     <div className="admin-dashboard">
       <header className="admin-header">
-        <h1>Dashboard</h1>
-        <button onClick={() => { localStorage.removeItem('admin_token'); setIsLoggedIn(false); }}>LOGOUT</button>
+        <div className="admin-logo-small">
+          <span className="logo-ba">BA</span><span className="logo-fly">FLY</span>
+          <span className="admin-badge">ADMIN</span>
+        </div>
+        <div className="admin-header-right">
+          {loading && <span className="admin-loading">A atualizar...</span>}
+          <button onClick={() => { localStorage.removeItem('admin_token'); setIsLoggedIn(false); }}>Sair</button>
+        </div>
       </header>
 
       <div className="stats-grid">
         <div className="stat-card">
-          <label>Total de sessões hoje</label>
-          <div className="value">{stats.sessionsToday}</div>
+          <label>Sessões hoje</label>
+          <div className="value">{stats.sessionsToday ?? 0}</div>
         </div>
         <div className="stat-card online">
-          <label>Utilizadores online agora</label>
-          <div className="value">{stats.onlineNow}</div>
+          <label>Online agora</label>
+          <div className="value">{stats.onlineNow ?? 0}</div>
         </div>
         <div className="stat-card reports">
           <label>Reports pendentes</label>
-          <div className="value">{stats.pendingReports}</div>
+          <div className="value">{stats.pendingReports ?? 0}</div>
         </div>
         <div className="stat-card time">
           <label>Tempo médio de sessão</label>
-          <div className="value">{stats.avgSessionTime}</div>
+          <div className="value">{formatDuration(stats.avgSessionTime)}</div>
         </div>
       </div>
 
       <div className="dashboard-content">
         <div className="section">
-          <h3>Reports Recentes</h3>
+          <h3>Reports Pendentes</h3>
           <table className="admin-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Reported ID</th>
-                <th>Reason</th>
-                <th>Actions</th>
+                <th>#</th>
+                <th>Utilizador Reportado</th>
+                <th>Motivo</th>
+                <th>Descrição</th>
+                <th>Data</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
               {reports.map(report => (
                 <tr key={report.id}>
                   <td>{report.id}</td>
-                  <td>{report.reported_id}</td>
+                  <td><code>{report.reported_id}</code></td>
                   <td>{report.reason}</td>
+                  <td>{report.description || '—'}</td>
+                  <td>{new Date(report.created_at).toLocaleDateString('pt-PT')}</td>
                   <td>
                     <button className="btn-dismiss" onClick={() => handleDismiss(report.id)}>Dispensar</button>
-                    <button className="btn-ban" onClick={() => handleBan(report.reported_id)}>Banir</button>
+                    <button className="btn-ban" onClick={() => handleBan(report.reported_id)}>Banir 7d</button>
                   </td>
                 </tr>
               ))}
-              {reports.length === 0 && <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px', color: '#666'}}>Sem reports pendentes</td></tr>}
+              {reports.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="empty-table">Sem reports pendentes</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="section">
-          <h3>Estatísticas (Últimos 7 dias)</h3>
-          <div className="stats-chart-placeholder">
-            {/* Simple CSS Bar Chart would go here */}
-            <div className="bar-chart">
-              {[65, 40, 80, 50, 90, 30, 70].map((h, i) => (
-                <div key={i} className="bar-wrapper">
-                  <div className="bar" style={{height: `${h}%`}}></div>
-                  <span className="bar-label">D{i+1}</span>
-                </div>
-              ))}
-            </div>
+          <h3>Sessões — Últimos 7 dias</h3>
+          <div className="bar-chart">
+            {chartData.length > 0 ? chartData.map((d, i) => (
+              <div key={i} className="bar-wrapper">
+                <div className="bar-value">{d.value}</div>
+                <div className="bar" style={{ height: `${Math.round((d.value / maxVal) * 100)}%` }}></div>
+                <span className="bar-label">{d.label}</span>
+              </div>
+            )) : (
+              <p style={{ color: '#555', textAlign: 'center', width: '100%', paddingTop: '40px' }}>
+                Sem dados ainda. Os dados aparecem após sessões completadas.
+              </p>
+            )}
           </div>
         </div>
       </div>

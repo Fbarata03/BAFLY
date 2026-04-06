@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireAdmin = require('../middleware/requireAdmin');
 
-router.get('/daily', async (req, res) => {
+router.get('/daily', requireAdmin, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM stats_daily ORDER BY date DESC LIMIT 7');
     res.json(result.rows);
@@ -12,7 +13,7 @@ router.get('/daily', async (req, res) => {
   }
 });
 
-router.get('/summary', async (req, res) => {
+router.get('/summary', requireAdmin, async (req, res) => {
   try {
     const isD1 = process.env.DB_DRIVER === 'd1';
 
@@ -28,14 +29,14 @@ router.get('/summary', async (req, res) => {
     const avgSessionTime = await db.query(
       isD1
         ? "SELECT AVG((julianday(ended_at) - julianday(started_at)) * 86400) as avg FROM sessions WHERE ended_at IS NOT NULL"
-        : 'SELECT AVG(TIMESTAMPDIFF(SECOND, started_at, ended_at)) as avg FROM sessions WHERE ended_at IS NOT NULL',
+        : 'SELECT AVG(EXTRACT(EPOCH FROM (ended_at - started_at))) as avg FROM sessions WHERE ended_at IS NOT NULL',
     );
 
     res.json({
       sessionsToday: sessionsToday.rows[0].total,
       onlineNow: onlineNow.rows[0].total,
       pendingReports: pendingReports.rows[0].total,
-      avgSessionTime: avgSessionTime.rows[0].avg || 0
+      avgSessionTime: Math.round(avgSessionTime.rows[0].avg || 0)
     });
   } catch (error) {
     console.error('Summary fetch error:', error);

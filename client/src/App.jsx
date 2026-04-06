@@ -3,6 +3,7 @@ import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
+import Legal from './pages/Legal';
 import './App.css';
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
         <Route path="/chat" element={<Chat />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/termos" element={<Legal />} />
+        <Route path="/privacidade" element={<Legal />} />
       </Routes>
     </div>
   );

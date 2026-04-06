@@ -441,8 +441,14 @@ io.on('connection', async (socket) => {
         socket.leave(room);
         socket.data.inMatch = false;
         
-        // Update session in DB
+        // Update session in DB and daily stats
         db.query('UPDATE sessions SET ended_at = CURRENT_TIMESTAMP, end_reason = $1 WHERE room_id = $2 AND ended_at IS NULL', ['disconnected', room]).catch(console.error);
+        db.query(`
+          INSERT INTO stats_daily (date, total_sessions, avg_session_time)
+          VALUES (CURRENT_DATE, 1, 0)
+          ON CONFLICT (date) DO UPDATE
+            SET total_sessions = stats_daily.total_sessions + 1
+        `).catch(console.error);
       }
     });
   }
