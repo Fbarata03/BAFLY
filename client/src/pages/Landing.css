@@ -679,7 +679,7 @@
 
 @media (max-width: 900px) {
   .landing-page {
-    padding: calc(env(safe-area-inset-top, 0px) + 16px)
+    padding: calc(env(safe-area-inset-top, 44px) + 16px)
              calc(env(safe-area-inset-right, 0px) + 16px)
              calc(env(safe-area-inset-bottom, 0px) + 24px)
              calc(env(safe-area-inset-left, 0px) + 16px);
@@ -691,24 +691,35 @@
   }
 
   .landing-header {
-    padding: calc(env(safe-area-inset-top, 0px) + 14px)
+    padding: calc(env(safe-area-inset-top, 44px) + 12px)
              calc(env(safe-area-inset-right, 0px) + 16px)
-             14px
+             12px
              calc(env(safe-area-inset-left, 0px) + 16px);
+    gap: 8px;
   }
 
   .logo {
     font-size: 1.6rem;
+    flex-shrink: 0;
   }
 
   .auth-link {
-    font-size: 0.8rem;
-    gap: 10px;
+    font-size: 0.75rem;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .auth-link span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 130px;
   }
 
   .landing-main {
-    padding-top: 76px;
-    gap: 20px;
+    padding-top: 80px;
+    gap: 18px;
     width: 100%;
   }
 
@@ -770,19 +781,23 @@
 /* Telefones muito pequenos (iPhone SE 1ª geração, Android compactos) */
 @media (max-width: 375px) {
   .landing-header {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+    padding-top: calc(env(safe-area-inset-top, 44px) + 8px);
     padding-left: calc(env(safe-area-inset-left, 0px) + 12px);
     padding-right: calc(env(safe-area-inset-right, 0px) + 12px);
     padding-bottom: 10px;
   }
 
   .logo {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
+  }
+
+  .auth-link span {
+    max-width: 100px;
   }
 
   .landing-main {
-    padding-top: 60px;
-    gap: 16px;
+    padding-top: 72px;
+    gap: 14px;
   }
 
   .tagline {
@@ -803,7 +818,7 @@
   .online-pill {
     font-size: 0.8rem;
     padding: 7px 14px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
 
   .start-btn {
