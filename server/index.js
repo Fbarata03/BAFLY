@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const reportRoutes = require('./routes/reports');
 const statsRoutes = require('./routes/stats');
 const adminRoutes = require('./routes/admin');
+const aiRoutes = require('./routes/ai');
 const initDB = require('./init_db');
 const { startCleanupScheduler } = require('./cleanup');
 
@@ -52,6 +53,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/healthz', (req, res) => {
