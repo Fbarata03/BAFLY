@@ -296,7 +296,7 @@ const Landing = () => {
               <span className="logo-fly">FLY</span>
             </div>
           </div>
-          <h2 className="hero-title">Benvindo ao BAFLY</h2>
+          <h2 className="hero-title">Bem-vindo ao BAFLY</h2>
           <div className="hero-sub">MEET STRANGERS - NO LIMITS</div>
 
           <div className="online-pill">
