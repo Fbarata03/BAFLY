@@ -1,8 +1,16 @@
 apply plugin: 'com.android.application'
 
 def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('keystore.properties')
-def hasKeystore = keystorePropertiesFile.exists()
+def keystorePropertiesFile = null
+def keystoreCandidates = [
+        rootProject.file('keystore.properties'),
+        new File(System.getProperty('user.home') + '/OneDrive/Desktop/Batila/keystore.properties'),
+        new File(System.getProperty('user.home') + '/Desktop/Batila/keystore.properties'),
+]
+for (f in keystoreCandidates) {
+    if (f && f.exists()) { keystorePropertiesFile = f; break }
+}
+def hasKeystore = keystorePropertiesFile != null
 if (hasKeystore) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
@@ -14,8 +22,8 @@ android {
         applicationId "net.bafly.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -40,6 +48,24 @@ android {
             if (hasKeystore) {
                 signingConfig signingConfigs.release
             }
+        }
+    }
+}
+
+def batilaDir = new File(System.getProperty('user.home') + '/OneDrive/Desktop/Batila')
+def batilaDirAlt = new File(System.getProperty('user.home') + '/Desktop/Batila')
+def pickBatilaDir = batilaDir.exists() ? batilaDir : (batilaDirAlt.exists() ? batilaDirAlt : null)
+
+tasks.register("copyReleaseBundleToBatila") {
+    dependsOn("bundleRelease")
+    doLast {
+        def out = file("$buildDir/outputs/bundle/release/app-release.aab")
+        if (!out.exists()) return
+        if (!pickBatilaDir) return
+        copy {
+            from out
+            into pickBatilaDir
+            rename { "bafly-release.aab" }
         }
     }
 }
