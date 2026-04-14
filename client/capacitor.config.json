@@ -1,0 +1,12 @@
+{
+  "appId": "net.bafly.app",
+  "appName": "BAFLY",
+  "webDir": "dist",
+  "server": {
+    "url": "https://bafly.net",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#080c10"
+  }
+}
