@@ -8,6 +8,11 @@
   VITE_SOCKET_URL = "https://bafly-server.onrender.com"
 
 [[redirects]]
+  from = "/child-safety.html"
+  to = "/child-safety.html"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
