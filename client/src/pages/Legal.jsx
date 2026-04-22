@@ -91,7 +91,7 @@ const PRIVACY = (
     <p>Não recolhemos intencionalmente dados de menores de 16 anos. Se detetarmos que um utilizador é menor, a conta será eliminada imediatamente.</p>
 
     <h2>9. Contacto</h2>
-    <p>Para exerceres os teus direitos ou questões de privacidade: <strong>privacy@bafly.net</strong></p>
+    <p>Para exerceres os teus direitos ou questões de privacidade: <strong>support@bafly.net</strong></p>
   </>
 );
 
