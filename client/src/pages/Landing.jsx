@@ -342,7 +342,7 @@ const Landing = () => {
 
           <div className="auth-footer-note">
             <span className="age-badge">16+</span>
-            Apenas para maiores de 18 anos
+            Apenas para maiores de 16 anos
           </div>
           <div className="auth-legal">
             <span onClick={() => navigate('/termos')} className="legal-link">Termos de Serviço</span>

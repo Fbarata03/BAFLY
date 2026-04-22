@@ -11,7 +11,7 @@ const TERMS = (
     <p>Ao aceder e utilizar o BAFLY, aceitas os presentes Termos de Serviço na íntegra. Se não concordares com algum dos termos, não deves utilizar esta plataforma.</p>
 
     <h2>2. Idade Mínima</h2>
-    <p>O BAFLY é <strong>exclusivamente para maiores de 18 anos</strong>. Ao utilizares esta plataforma, confirmas que tens 18 ou mais anos de idade. Menores de idade serão banidos permanentemente.</p>
+    <p>O BAFLY é <strong>exclusivamente para maiores de 16 anos</strong>. Ao utilizares esta plataforma, confirmas que tens 16 ou mais anos de idade. Menores de idade serão banidos permanentemente.</p>
 
     <h2>3. Regras de Conduta</h2>
     <p>É estritamente proibido:</p>
@@ -88,7 +88,7 @@ const PRIVACY = (
     <p>Utilizamos ligações encriptadas (HTTPS/WSS) e não armazenamos passwords em texto simples. No entanto, nenhum sistema é 100% seguro — utiliza a plataforma com responsabilidade.</p>
 
     <h2>8. Menores</h2>
-    <p>Não recolhemos intencionalmente dados de menores de 18 anos. Se detetarmos que um utilizador é menor, a conta será eliminada imediatamente.</p>
+    <p>Não recolhemos intencionalmente dados de menores de 16 anos. Se detetarmos que um utilizador é menor, a conta será eliminada imediatamente.</p>
 
     <h2>9. Contacto</h2>
     <p>Para exerceres os teus direitos ou questões de privacidade: <strong>privacy@bafly.net</strong></p>
