@@ -92,8 +92,6 @@ const PRIVACY = (
 
     <h2>9. Contacto</h2>
     <p>Para exerceres os teus direitos ou questões de privacidade: <strong>privacy@bafly.net</strong></p>
-
-    <p className="legal-owner">Feliciano Barata</p>
   </>
 );
 
