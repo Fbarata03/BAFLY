@@ -40,9 +40,14 @@
   padding: 20px;
   position: relative;
   background-color: var(--bg-color);
-  background-image: 
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    url('/landing-cover.jpg'),
     radial-gradient(circle at 10% 20%, rgba(0, 255, 136, 0.03) 0%, transparent 20%),
     radial-gradient(circle at 90% 80%, rgba(0, 170, 255, 0.03) 0%, transparent 20%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: var(--text-white);
   text-align: center;
   overflow-x: hidden;
