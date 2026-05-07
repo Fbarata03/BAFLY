@@ -69,10 +69,9 @@
   position: relative;
   background-color: var(--bg-color);
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
-    url('/landing-cover.jpg'),
     radial-gradient(circle at 10% 20%, rgba(0, 255, 136, 0.03) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(0, 170, 255, 0.03) 0%, transparent 20%);
+    radial-gradient(circle at 90% 80%, rgba(0, 170, 255, 0.03) 0%, transparent 20%),
+    linear-gradient(180deg, rgba(10, 15, 20, 0.95) 0%, rgba(7, 9, 16, 0.95) 100%);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
