@@ -5,7 +5,7 @@ import OnlineBadge from '../components/OnlineBadge';
 import BanScreen from '../components/BanScreen';
 import './Landing.css';
 
-const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
+const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
 const API_URL =
   window.location.hostname === "localhost"
     ? ""

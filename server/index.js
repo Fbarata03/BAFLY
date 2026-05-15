@@ -40,7 +40,7 @@ initDB();
 // Limpeza automática diária
 startCleanupScheduler();
 
-// Trust Railway/Netlify proxy
+// Trust Render/Netlify proxy
 app.set('trust proxy', 1);
 
 // Middleware

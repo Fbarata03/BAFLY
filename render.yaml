@@ -1,7 +1,7 @@
 services:
   - type: web
     name: bafly-server
-    env: node
+    runtime: node
     rootDir: server
     buildCommand: npm install
     startCommand: node index.js
@@ -10,14 +10,33 @@ services:
     plan: free
     region: oregon
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: PORT
         value: 3001
-      # Defina estes no painel do Render (NÃO comite segredos):
-      # - key: DATABASE_URL
-      #   sync: false
-      # - key: DB_SSL_CA_BASE64
-      #   sync: false
-      # - key: JWT_SECRET
-      #   sync: false
-      # - key: ADMIN_PASSWORD
-      #   sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_BASE_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: FACEBOOK_REDIRECT_URI
+        sync: false
+      - key: DB_SSL_MODE
+        value: REQUIRED
+      - key: DB_SSL_CA_BASE64
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false

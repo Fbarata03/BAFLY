@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
-const PROD_BACKEND = "https://bafly-server-production-49a3.up.railway.app";
+const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
 const API_URL =
   window.location.hostname === "localhost"
     ? ""
