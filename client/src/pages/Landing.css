@@ -69,8 +69,7 @@
   position: relative;
   background-color: var(--bg-color);
   background-image:
-    linear-gradient(to right, rgba(8,12,16,0.7) 0%, rgba(8,12,16,0.35) 35%, rgba(8,12,16,0.35) 65%, rgba(8,12,16,0.7) 100%),
-    linear-gradient(180deg, rgba(8,12,16,0.2) 0%, rgba(8,12,16,0.5) 100%),
+    linear-gradient(to right, rgba(8,12,16,0.75) 0%, rgba(8,12,16,0.1) 30%, rgba(8,12,16,0.1) 70%, rgba(8,12,16,0.75) 100%),
     url('/landing-cover.png');
   background-size: cover;
   background-position: center;
