@@ -36,7 +36,7 @@ const buildSslConfig = () => {
   } else if (caPlain) {
     ca = String(caPlain).replace(/\\n/g, '\n');
   }
-  return ca ? { ca, rejectUnauthorized: true, minVersion: 'TLSv1.2' } : { rejectUnauthorized: false, minVersion: 'TLSv1.2' };
+  return { ca: ca || undefined, rejectUnauthorized: false, minVersion: 'TLSv1.2' };
 };
 
 const initPool = async () => {
