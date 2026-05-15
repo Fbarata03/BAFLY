@@ -49,6 +49,10 @@ const runCleanup = async () => {
     `);
     console.log(`[CLEANUP] Bans expirados antigos eliminados`);
 
+    // 6. Limpar oauth_states expirados
+    await db.query('DELETE FROM oauth_states WHERE expires_at < NOW()').catch(() => {});
+    console.log(`[CLEANUP] OAuth states expirados eliminados`);
+
     console.log(`[CLEANUP] Limpeza concluída com sucesso`);
   } catch (err) {
     console.error('[CLEANUP] Erro durante limpeza:', err.message);

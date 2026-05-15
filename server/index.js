@@ -519,6 +519,17 @@ io.on('connection', async (socket) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Keep-alive: pinga o próprio servidor a cada 10 min para o Render não adormecer
+  const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try {
+      await fetch(`${selfUrl}/healthz`, { signal: AbortSignal.timeout(10000) });
+      console.log('[KEEP-ALIVE] ping ok');
+    } catch (e) {
+      console.warn('[KEEP-ALIVE] ping falhou:', e.message);
+    }
+  }, 10 * 60 * 1000); // cada 10 minutos
 });
 
 module.exports = app;
