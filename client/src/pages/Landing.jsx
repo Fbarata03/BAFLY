@@ -356,7 +356,7 @@ const Landing = () => {
   }
 
   return (
-    <div className="landing-page" style={{ backgroundImage: `url(${landingBg})` }}>
+    <div className="landing-page" style={{ backgroundImage: `linear-gradient(rgba(8,12,16,0.15),rgba(8,12,16,0.25)),url(${landingBg})` }}>
       <header className="landing-header">
         <div className="logo">
           <span className="logo-ba">BA</span>
