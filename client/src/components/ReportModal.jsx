@@ -6,7 +6,7 @@ const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
 const API_URL =
   window.location.hostname === "localhost"
     ? ""
-    : window.location.hostname === "bafly.net" || window.location.hostname.endsWith(".netlify.app")
+    : window.location.hostname === "bafly.net" || window.location.hostname === "www.bafly.net" || window.location.hostname.endsWith(".netlify.app") || window.location.hostname.endsWith(".github.io")
       ? PROD_BACKEND
       : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
