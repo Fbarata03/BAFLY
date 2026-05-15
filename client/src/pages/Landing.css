@@ -68,9 +68,6 @@
   padding: 20px;
   position: relative;
   background-color: var(--bg-color);
-  background-image:
-    linear-gradient(rgba(8,12,16,0.45), rgba(8,12,16,0.55)),
-    url('/landing-cover.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

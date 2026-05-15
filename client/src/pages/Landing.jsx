@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { socket } from '../socket';
 import OnlineBadge from '../components/OnlineBadge';
 import BanScreen from '../components/BanScreen';
+import landingBg from '../assets/landing-cover.png';
 import './Landing.css';
 
 const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
@@ -355,7 +356,7 @@ const Landing = () => {
   }
 
   return (
-    <div className="landing-page">
+    <div className="landing-page" style={{ backgroundImage: `linear-gradient(rgba(8,12,16,0.42),rgba(8,12,16,0.52)),url(${landingBg})` }}>
       <header className="landing-header">
         <div className="logo">
           <span className="logo-ba">BA</span>
