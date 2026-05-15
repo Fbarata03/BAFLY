@@ -109,6 +109,15 @@ const createTables = async () => {
       )
     `);
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS oauth_states (
+        state VARCHAR(64) PRIMARY KEY,
+        provider VARCHAR(32) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Limpar online_now ao arrancar (entradas antigas de sessões anteriores)
     await db.query('DELETE FROM online_now WHERE 1=1').catch(() => {});
 

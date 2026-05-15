@@ -6,8 +6,6 @@ const crypto = require('crypto');
 const db = require('../db');
 require('dotenv').config();
 
-const oauthStates = new Map();
-
 const base64UrlToBuffer = (s) => {
   const b64 = String(s).replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(String(s).length / 4) * 4, '=');
   return Buffer.from(b64, 'base64');
@@ -17,19 +15,25 @@ const base64UrlToString = (s) => base64UrlToBuffer(s).toString('utf8');
 
 const getClientBaseUrl = () => process.env.CLIENT_BASE_URL || 'http://localhost:5173';
 
-const createOAuthState = (provider) => {
+const createOAuthState = async (provider) => {
   const state = crypto.randomBytes(16).toString('hex');
-  oauthStates.set(state, { provider, expiresAt: Date.now() + 10 * 60 * 1000 });
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+  await db.query('INSERT INTO oauth_states (state, provider, expires_at) VALUES ($1, $2, $3)', [state, provider, expiresAt]).catch(() => {});
   return state;
 };
 
-const consumeOAuthState = (state, expectedProvider) => {
-  const entry = oauthStates.get(state);
-  oauthStates.delete(state);
-  if (!entry) return false;
-  if (entry.provider !== expectedProvider) return false;
-  if (Date.now() > entry.expiresAt) return false;
-  return true;
+const consumeOAuthState = async (state, expectedProvider) => {
+  try {
+    const result = await db.query('SELECT provider, expires_at FROM oauth_states WHERE state = $1', [state]);
+    await db.query('DELETE FROM oauth_states WHERE state = $1', [state]);
+    if (!result.rows.length) return false;
+    const entry = result.rows[0];
+    if (entry.provider !== expectedProvider) return false;
+    if (new Date(entry.expires_at) < new Date()) return false;
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const pickUsername = async (preferred) => {
@@ -133,7 +137,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/google/start', (req, res) => {
+router.get('/google/start', async (req, res) => {
   console.log('[GOOGLE_START] ID:', !!process.env.GOOGLE_CLIENT_ID, '| SEC:', !!process.env.GOOGLE_CLIENT_SECRET, '| URI:', !!process.env.GOOGLE_REDIRECT_URI);
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REDIRECT_URI) {
     if (String(process.env.OAUTH_DEV_MODE).toLowerCase() === 'true') {
@@ -159,7 +163,7 @@ router.get('/google/start', (req, res) => {
     }
     return res.status(501).send('Google OAuth not configured');
   }
-  const state = createOAuthState('google');
+  const state = await createOAuthState('google');
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
   url.searchParams.set('redirect_uri', process.env.GOOGLE_REDIRECT_URI);
@@ -177,7 +181,7 @@ router.get('/google/callback', async (req, res) => {
     }
     const code = req.query.code;
     const state = req.query.state;
-    if (!code || !state || !consumeOAuthState(state, 'google')) {
+    if (!code || !state || !(await consumeOAuthState(state, 'google'))) {
       return res.status(400).send('Invalid OAuth state');
     }
 
@@ -212,7 +216,7 @@ router.get('/google/callback', async (req, res) => {
   }
 });
 
-router.get('/facebook/start', (req, res) => {
+router.get('/facebook/start', async (req, res) => {
   console.log('[FACEBOOK_START] ID:', !!process.env.FACEBOOK_APP_ID, '| SEC:', !!process.env.FACEBOOK_APP_SECRET, '| URI:', !!process.env.FACEBOOK_REDIRECT_URI);
   if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET || !process.env.FACEBOOK_REDIRECT_URI) {
     if (String(process.env.OAUTH_DEV_MODE).toLowerCase() === 'true') {
@@ -238,7 +242,7 @@ router.get('/facebook/start', (req, res) => {
     }
     return res.status(501).send('Facebook OAuth not configured');
   }
-  const state = createOAuthState('facebook');
+  const state = await createOAuthState('facebook');
   const url = new URL('https://www.facebook.com/v19.0/dialog/oauth');
   url.searchParams.set('client_id', process.env.FACEBOOK_APP_ID);
   url.searchParams.set('redirect_uri', process.env.FACEBOOK_REDIRECT_URI);
@@ -255,7 +259,7 @@ router.get('/facebook/callback', async (req, res) => {
     }
     const code = req.query.code;
     const state = req.query.state;
-    if (!code || !state || !consumeOAuthState(state, 'facebook')) {
+    if (!code || !state || !(await consumeOAuthState(state, 'facebook'))) {
       return res.status(400).send('Invalid OAuth state');
     }
 
