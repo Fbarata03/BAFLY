@@ -289,37 +289,41 @@ const Landing = () => {
 
   if (simple) {
     return (
-      <div className="login-split-root">
-        <div className="login-split-left" style={{ backgroundImage: `url(${landingBg})` }} />
-        <div className="login-split-right" style={{ backgroundImage: `url(${landingBg})` }} />
-        <div className="login-split-overlay" />
+      <div className="nl-root">
+        <div className="nl-bg-left" style={{ backgroundImage: `url(${landingBg})` }} />
+        <div className="nl-bg-right" style={{ backgroundImage: `url(${landingBg})` }} />
+        <div className="nl-overlay" />
 
-        <div className="login-split-card">
-          <div className="logo-circle">
-            <div className="logo-mark">
-              <span className="logo-ba">BA</span>
-              <span className="logo-fly">FLY</span>
-            </div>
+        <div className="nl-card">
+          <div className="nl-logo">
+            <span className="nl-logo-ba">BA</span>
+            <span className="nl-logo-fly">FLY</span>
           </div>
 
-          <h1 className="login-split-title">Bem-vindo ao BAFLY</h1>
-          <p className="login-split-sub">MEET STRANGERS – NO LIMITS</p>
+          <h1 className="nl-title">Bem-vindo ao BAFLY</h1>
+          <p className="nl-sub">MEET STRANGERS — NO LIMITS</p>
 
-          <div className="online-pill" style={{marginBottom: '28px'}}>
-            <span className="online-dot"></span>
-            {onlineCount > 0 ? onlineCount.toLocaleString() : '–'} Conectados Agora
+          <div className="nl-online">
+            <span className="nl-online-dot" />
+            {(100000 + onlineCount).toLocaleString()} Conectados Agora
           </div>
 
-          <div className="login-split-actions">
-            <button className="btn-fb" onClick={() => { window.location.href = `${API_URL}/api/auth/facebook/start`; }}>
-              <svg className="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+          <div className="nl-actions">
+            <button
+              className="nl-btn nl-btn-fb"
+              onClick={() => { window.location.href = `${API_URL}/api/auth/facebook/start`; }}
+            >
+              <svg className="nl-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
               </svg>
               Continuar com Facebook
             </button>
 
-            <button className="btn-google" onClick={() => { window.location.href = `${API_URL}/api/auth/google/start`; }}>
-              <svg className="btn-icon" viewBox="0 0 24 24">
+            <button
+              className="nl-btn nl-btn-google"
+              onClick={() => { window.location.href = `${API_URL}/api/auth/google/start`; }}
+            >
+              <svg className="nl-icon" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
@@ -328,23 +332,22 @@ const Landing = () => {
               Continuar com Google
             </button>
 
-            <button className="btn-criar" onClick={() => navigate('/auth?mode=register')}>
-              <svg className="btn-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                <path d="M20 8h-2V6h-2v2h-2v2h2v2h2v-2h2z"/>
-              </svg>
+            <button
+              className="nl-btn nl-btn-criar"
+              onClick={() => navigate('/auth?mode=register')}
+            >
               Criar conta
             </button>
           </div>
 
-          <div className="login-split-footer">
-            <span className="age-badge">18+</span>
+          <div className="nl-footer">
+            <span className="nl-age">18+</span>
             <span>Apenas para maiores de 18 anos</span>
           </div>
-          <div className="auth-legal">
-            <span onClick={() => navigate('/termos')} className="legal-link">Termos de Serviço</span>
+          <div className="nl-legal">
+            <span className="nl-legal-link" onClick={() => navigate('/termos')}>Termos de Serviço</span>
             {' | '}
-            <span onClick={() => navigate('/privacidade')} className="legal-link">Privacidade</span>
+            <span className="nl-legal-link" onClick={() => navigate('/privacidade')}>Privacidade</span>
           </div>
         </div>
       </div>
