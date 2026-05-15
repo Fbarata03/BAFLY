@@ -32,7 +32,7 @@ const buildSslConfig = () => {
   const caPlain = process.env.DB_SSL_CA;
   let ca;
   if (caBase64) {
-    try { ca = Buffer.from(caBase64, 'base64').toString('utf8'); } catch {}
+    try { ca = Buffer.from(caBase64, 'base64').toString('utf8').replace(/\r\n/g, '\n'); } catch {}
   } else if (caPlain) {
     ca = String(caPlain).replace(/\\n/g, '\n');
   }
