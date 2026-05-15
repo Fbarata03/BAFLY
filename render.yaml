@@ -40,3 +40,7 @@ services:
         sync: false
       - key: TURN_CREDENTIAL
         sync: false
+      - key: ADMIN_USERNAME
+        value: Fbarata03
+      - key: ADMIN_PASSWORD
+        sync: false

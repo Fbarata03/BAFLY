@@ -926,6 +926,117 @@
   }
 }
 
+/* ── NOVO ECRÃ DE LOGIN COM SPLIT BACKGROUND ── */
+
+.login-split-root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #080c10;
+}
+
+.login-split-left,
+.login-split-right {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.login-split-left {
+  left: 0;
+  background-position: left center;
+}
+
+.login-split-right {
+  right: 0;
+  background-position: right center;
+}
+
+.login-split-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(8,12,16,0.45) 0%,
+    rgba(8,12,16,0.72) 28%,
+    rgba(8,12,16,0.72) 72%,
+    rgba(8,12,16,0.45) 100%
+  );
+  z-index: 1;
+}
+
+.login-split-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 32px 32px;
+  width: 100%;
+  max-width: 420px;
+  gap: 4px;
+}
+
+.login-split-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 16px 0 6px;
+  line-height: 1.15;
+}
+
+.login-split-sub {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: #a0a0a0;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+}
+
+.login-split-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.login-split-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a0a0a0;
+  font-size: 0.78rem;
+  margin-bottom: 8px;
+}
+
+/* Mobile: stack full image, remove split */
+@media (max-width: 600px) {
+  .login-split-left {
+    width: 100%;
+    background-position: 30% center;
+  }
+  .login-split-right {
+    display: none;
+  }
+  .login-split-overlay {
+    background: rgba(8,12,16,0.62);
+  }
+  .login-split-card {
+    padding: 32px 20px 28px;
+  }
+  .login-split-title {
+    font-size: 1.65rem;
+  }
+}
+
 /* Ecrãs largos (tablets, desktop) — mantém centrado */
 @media (min-width: 901px) {
   .start-btn {
