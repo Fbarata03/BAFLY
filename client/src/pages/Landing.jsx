@@ -356,7 +356,6 @@ const Landing = () => {
 
   return (
     <div className="landing-page">
-      <img src="/landing-cover.png" className="landing-bg-img" alt="" aria-hidden="true" />
       <header className="landing-header">
         <div className="logo">
           <span className="logo-ba">BA</span>
