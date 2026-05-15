@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bafly-v2';
+const CACHE_NAME = 'bafly-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
