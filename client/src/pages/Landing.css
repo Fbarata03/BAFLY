@@ -70,11 +70,10 @@
   background-color: var(--bg-color);
   color: var(--text-white);
   text-align: center;
-  overflow-x: hidden;
 }
 
 .landing-bg-img {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -87,7 +86,7 @@
 
 .landing-page::after {
   content: '';
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -749,18 +748,12 @@
 }
 
 @media (max-width: 900px) {
-  .landing-bg-img,
-  .landing-page::after {
-    position: absolute;
-  }
-
   .landing-page {
     padding: calc(env(safe-area-inset-top, 44px) + 16px) calc(env(safe-area-inset-right, 0px) + 16px) calc(env(safe-area-inset-bottom, 0px) + 24px) calc(env(safe-area-inset-left, 0px) + 16px);
     justify-content: flex-start;
     min-height: 100dvh;
     height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: visible;
   }
 
   .landing-header {
