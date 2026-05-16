@@ -781,11 +781,92 @@
 }
 .nl-legal-link:hover { opacity: 0.7; }
 
-@media (max-width: 600px) {
-  .nl-bg-left  { width: 100%; background-position: 35% center; }
+/* ── Tablet largo (901px+): card ligeiramente maior ── */
+@media (min-width: 901px) {
+  .nl-card  { max-width: 440px; }
+  .nl-title { font-size: 2rem; }
+  .nl-logo  { font-size: 3.4rem; }
+}
+
+/* ── Tablet portrait / landscape (600–900px): split mantido ── */
+@media (max-width: 900px) and (min-width: 601px) {
+  .nl-card  { max-width: 380px; padding: 0 20px; }
+  .nl-title { font-size: 1.65rem; }
+  .nl-logo  { font-size: 2.7rem; }
+  .nl-btn   { font-size: 0.92rem; padding: 13px 18px; }
+}
+
+/* ── Mobile portrait (<600px): imagem inteira, ambas as pessoas ── */
+@keyframes nl-ken-mobile {
+  0%   { transform: scale(1.0) translate(0%, 0%); }
+  50%  { transform: scale(1.06) translate(0.5%, -0.5%); }
+  100% { transform: scale(1.0) translate(0%, 0%); }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  /* Um único painel 100% a mostrar a imagem centrada — ambas as pessoas visíveis */
+  .nl-bg-left {
+    width: 100%;
+    height: 100%;
+    background-position: center center;
+    background-size: cover;
+    transform-origin: center center;
+    animation: nl-ken-mobile 14s ease-in-out infinite;
+  }
   .nl-bg-right { display: none; }
-  .nl-overlay  { background: rgba(8,12,16,0.65); }
-  .nl-card     { padding: 0 20px; }
-  .nl-title    { font-size: 1.55rem; }
-  .nl-logo     { font-size: 2.5rem; }
+
+  /* Overlay uniforme mais denso para legibilidade */
+  .nl-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(8,12,16,0.30) 0%,
+      rgba(8,12,16,0.72) 35%,
+      rgba(8,12,16,0.72) 65%,
+      rgba(8,12,16,0.30) 100%
+    );
+  }
+
+  .nl-card  { padding: 0 22px; max-width: 360px; }
+  .nl-logo  { font-size: 2.4rem; margin-bottom: 10px; }
+  .nl-title { font-size: 1.5rem; }
+  .nl-sub   { font-size: 0.62rem; }
+  .nl-online { font-size: 0.8rem; padding: 7px 14px; margin-bottom: 20px; }
+  .nl-btn   { font-size: 0.9rem; padding: 13px 16px; border-radius: 12px; }
+  .nl-actions { gap: 10px; margin-bottom: 16px; }
+  .nl-footer { font-size: 0.72rem; }
+  .nl-legal  { font-size: 0.72rem; }
+}
+
+/* ── Mobile landscape (<600px altura): split mantido, card compacto ── */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  .nl-bg-left  { width: 50%; background-position: left center; }
+  .nl-bg-right { display: block; width: 50%; background-position: right center; }
+
+  .nl-overlay {
+    background: linear-gradient(
+      to right,
+      rgba(8,12,16,0.38) 0%,
+      rgba(8,12,16,0.78) 28%,
+      rgba(8,12,16,0.78) 72%,
+      rgba(8,12,16,0.38) 100%
+    );
+  }
+
+  .nl-card    { max-width: 320px; padding: 0 16px; gap: 0; }
+  .nl-logo    { font-size: 2rem; margin-bottom: 6px; }
+  .nl-title   { font-size: 1.2rem; margin-bottom: 4px; }
+  .nl-sub     { font-size: 0.58rem; margin-bottom: 10px; }
+  .nl-online  { font-size: 0.75rem; padding: 5px 12px; margin-bottom: 12px; }
+  .nl-actions { gap: 8px; margin-bottom: 10px; }
+  .nl-btn     { font-size: 0.85rem; padding: 11px 14px; border-radius: 10px; }
+  .nl-footer  { font-size: 0.68rem; margin-bottom: 6px; }
+  .nl-legal   { font-size: 0.68rem; }
+}
+
+/* ── Telemóveis muito pequenos (<375px) ── */
+@media (max-width: 375px) and (orientation: portrait) {
+  .nl-logo    { font-size: 2.1rem; }
+  .nl-title   { font-size: 1.3rem; }
+  .nl-card    { padding: 0 16px; }
+  .nl-btn     { font-size: 0.85rem; padding: 12px 14px; }
 }
