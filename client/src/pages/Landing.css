@@ -552,12 +552,13 @@
   100% { transform: scale(1.00) translate(0%,    0%);  }
 }
 
-/* Linha de scan a varrer de cima para baixo */
-@keyframes nl-scan {
-  0%   { top: -3px; opacity: 0; }
-  5%   { opacity: 0.8; }
-  95%  { opacity: 0.4; }
-  100% { top: 100%; opacity: 0; }
+/* Shimmer diagonal — luz a atravessar o ecrã em diagonal */
+@keyframes nl-shimmer {
+  0%         { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
+  8%         { opacity: 1; }
+  42%        { opacity: 0.6; }
+  50%        { transform: translateX(220%)  skewX(-18deg); opacity: 0; }
+  100%       { transform: translateX(220%)  skewX(-18deg); opacity: 0; }
 }
 
 /* Flash de "ligação" — rápido e breve */
@@ -599,22 +600,26 @@
   background: #080c10;
 }
 
-/* Scan line */
+/* Shimmer diagonal */
 .nl-root::before {
   content: '';
   position: absolute;
-  left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(to right,
-    transparent 0%,
-    rgba(255,255,255,0.18) 30%,
-    rgba(255,255,255,0.30) 50%,
-    rgba(255,255,255,0.18) 70%,
-    transparent 100%
+  top: -50%;
+  left: 0;
+  width: 55%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent            0%,
+    rgba(255,255,255,0.04) 30%,
+    rgba(255,255,255,0.13) 50%,
+    rgba(255,255,255,0.04) 70%,
+    transparent            100%
   );
   z-index: 4;
   pointer-events: none;
-  animation: nl-scan 5s linear infinite;
+  animation: nl-shimmer 7s ease-in-out infinite;
+  animation-delay: -1.5s;
 }
 
 /* Grão de filme */
