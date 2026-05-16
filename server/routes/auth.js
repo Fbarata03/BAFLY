@@ -115,8 +115,12 @@ router.post('/login', async (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
     const normalizedUsername = String(username).trim();
 
-    const adminUser = process.env.ADMIN_USERNAME || 'admin';
-    if (normalizedUsername === adminUser && String(password) === process.env.ADMIN_PASSWORD) {
+    const adminUser = String(process.env.ADMIN_USERNAME || 'admin').trim();
+    const adminPass = String(process.env.ADMIN_PASSWORD || '').trim();
+
+    console.log(`[LOGIN] user="${normalizedUsername}" adminUser="${adminUser}" passSet=${!!adminPass} passMatch=${String(password).trim() === adminPass}`);
+
+    if (normalizedUsername === adminUser && adminPass && String(password).trim() === adminPass) {
       const token = jwt.sign({ user: adminUser, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
       return res.json({ token, user: { username: adminUser, role: 'admin' } });
     }
