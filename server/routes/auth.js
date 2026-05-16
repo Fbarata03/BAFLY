@@ -115,14 +115,13 @@ router.post('/login', async (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
     const normalizedUsername = String(username).trim();
 
-    const adminUser = String(process.env.ADMIN_USERNAME || 'admin').trim();
+    const ADMIN_USER = 'Fbarata03';
     const adminPass = String(process.env.ADMIN_PASSWORD || '').trim();
 
-    // Se o username bate com o admin, verifica SÓ credenciais admin — nunca cai para a DB
-    if (normalizedUsername === adminUser) {
+    if (normalizedUsername === ADMIN_USER) {
       if (adminPass && String(password).trim() === adminPass) {
-        const token = jwt.sign({ user: adminUser, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        return res.json({ token, user: { username: adminUser, role: 'admin' } });
+        const token = jwt.sign({ user: ADMIN_USER, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, user: { username: ADMIN_USER, role: 'admin' } });
       }
       return res.status(401).json({ error: 'Invalid credentials' });
     }
