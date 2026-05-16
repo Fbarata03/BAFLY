@@ -118,11 +118,13 @@ router.post('/login', async (req, res) => {
     const adminUser = String(process.env.ADMIN_USERNAME || 'admin').trim();
     const adminPass = String(process.env.ADMIN_PASSWORD || '').trim();
 
-    console.log(`[LOGIN] user="${normalizedUsername}" adminUser="${adminUser}" passSet=${!!adminPass} passMatch=${String(password).trim() === adminPass}`);
-
-    if (normalizedUsername === adminUser && adminPass && String(password).trim() === adminPass) {
-      const token = jwt.sign({ user: adminUser, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
-      return res.json({ token, user: { username: adminUser, role: 'admin' } });
+    // Se o username bate com o admin, verifica SÓ credenciais admin — nunca cai para a DB
+    if (normalizedUsername === adminUser) {
+      if (adminPass && String(password).trim() === adminPass) {
+        const token = jwt.sign({ user: adminUser, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, user: { username: adminUser, role: 'admin' } });
+      }
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const result = await db.query('SELECT id, username, password_hash FROM users WHERE username = $1 LIMIT 1', [normalizedUsername]);
