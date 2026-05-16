@@ -552,14 +552,6 @@
   100% { transform: scale(1.00) translate(0%,    0%);  }
 }
 
-/* Shimmer diagonal — luz a atravessar o ecrã em diagonal */
-@keyframes nl-shimmer {
-  0%         { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
-  8%         { opacity: 1; }
-  42%        { opacity: 0.6; }
-  50%        { transform: translateX(220%)  skewX(-18deg); opacity: 0; }
-  100%       { transform: translateX(220%)  skewX(-18deg); opacity: 0; }
-}
 
 /* Flash de "ligação" — rápido e breve */
 @keyframes nl-flash {
@@ -600,27 +592,6 @@
   background: #080c10;
 }
 
-/* Shimmer diagonal */
-.nl-root::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: 0;
-  width: 55%;
-  height: 200%;
-  background: linear-gradient(
-    to right,
-    transparent            0%,
-    rgba(255,255,255,0.04) 30%,
-    rgba(255,255,255,0.13) 50%,
-    rgba(255,255,255,0.04) 70%,
-    transparent            100%
-  );
-  z-index: 4;
-  pointer-events: none;
-  animation: nl-shimmer 7s ease-in-out infinite;
-  animation-delay: -1.5s;
-}
 
 /* Grão de filme */
 .nl-root::after {
