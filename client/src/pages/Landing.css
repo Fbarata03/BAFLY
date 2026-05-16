@@ -519,40 +519,74 @@
 
 /* ══════════════════════════════════════════
    NOVA TELA DE LOGIN — classes nl-*
-   (zero reutilização do design anterior)
 ══════════════════════════════════════════ */
 
 @keyframes nl-pulse {
   0%, 100% { box-shadow: 0 0 6px #00ff88; }
-  50%       { box-shadow: 0 0 18px #00ff88; }
+  50%       { box-shadow: 0 0 20px #00ff88, 0 0 40px rgba(0,255,136,0.3); }
 }
 
-/* Ken Burns — metade esquerda: zoom in + drift para a direita */
+/* Ken Burns dramático — esquerda */
 @keyframes nl-ken-left {
-  0%   { transform: scale(1.0)  translate(0%, 0%); }
-  50%  { transform: scale(1.08) translate(1.5%, -0.5%); }
-  100% { transform: scale(1.0)  translate(0%, 0%); }
+  0%   { transform: scale(1.00) translate(0%,    0%);   }
+  20%  { transform: scale(1.12) translate(2.5%, -1.5%); }
+  45%  { transform: scale(1.08) translate(1%,    1.5%); }
+  70%  { transform: scale(1.16) translate(3%,   -0.5%); }
+  100% { transform: scale(1.00) translate(0%,    0%);   }
 }
 
-/* Ken Burns — metade direita: zoom in + drift para a esquerda */
+/* Ken Burns dramático — direita (oposto) */
 @keyframes nl-ken-right {
-  0%   { transform: scale(1.0)  translate(0%, 0%); }
-  50%  { transform: scale(1.08) translate(-1.5%, 0.5%); }
-  100% { transform: scale(1.0)  translate(0%, 0%); }
+  0%   { transform: scale(1.00) translate(0%,     0%);  }
+  20%  { transform: scale(1.14) translate(-2.5%,  1%);  }
+  45%  { transform: scale(1.09) translate(-0.5%, -1.5%);}
+  70%  { transform: scale(1.16) translate(-3%,    0.5%);}
+  100% { transform: scale(1.00) translate(0%,     0%);  }
 }
 
-/* Grão de filme subtil */
+/* Ken Burns mobile */
+@keyframes nl-ken-mob {
+  0%   { transform: scale(1.00) translate(0%,    0%);  }
+  33%  { transform: scale(1.10) translate(0.5%, -1%);  }
+  66%  { transform: scale(1.13) translate(-0.5%, 0.8%);}
+  100% { transform: scale(1.00) translate(0%,    0%);  }
+}
+
+/* Linha de scan a varrer de cima para baixo */
+@keyframes nl-scan {
+  0%   { top: -3px; opacity: 0; }
+  5%   { opacity: 0.8; }
+  95%  { opacity: 0.4; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Flash de "ligação" — rápido e breve */
+@keyframes nl-flash {
+  0%, 85%, 100% { opacity: 0; }
+  88%  { opacity: 0.14; }
+  90%  { opacity: 0; }
+  93%  { opacity: 0.08; }
+  95%  { opacity: 0; }
+}
+
+/* Vinheta que respira */
+@keyframes nl-vignette {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+/* Grão de filme */
 @keyframes nl-grain {
-  0%, 100% { transform: translate(0, 0); }
-  10%  { transform: translate(-1px, 1px); }
-  20%  { transform: translate(1px, -1px); }
-  30%  { transform: translate(-2px, 0px); }
-  40%  { transform: translate(2px, 1px); }
+  0%, 100% { transform: translate(0,    0); }
+  10%  { transform: translate(-1px,  1px); }
+  20%  { transform: translate( 1px, -1px); }
+  30%  { transform: translate(-2px,  0px); }
+  40%  { transform: translate( 2px,  1px); }
   50%  { transform: translate(-1px, -2px); }
-  60%  { transform: translate(1px, 2px); }
-  70%  { transform: translate(-2px, 1px); }
-  80%  { transform: translate(2px, -1px); }
-  90%  { transform: translate(0px, 2px); }
+  60%  { transform: translate( 1px,  2px); }
+  70%  { transform: translate(-2px,  1px); }
+  80%  { transform: translate( 2px, -1px); }
+  90%  { transform: translate( 0px,  2px); }
 }
 
 .nl-root {
@@ -565,19 +599,38 @@
   background: #080c10;
 }
 
-/* Camada de grão de filme por cima de tudo */
+/* Scan line */
+.nl-root::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(to right,
+    transparent 0%,
+    rgba(255,255,255,0.18) 30%,
+    rgba(255,255,255,0.30) 50%,
+    rgba(255,255,255,0.18) 70%,
+    transparent 100%
+  );
+  z-index: 4;
+  pointer-events: none;
+  animation: nl-scan 5s linear infinite;
+}
+
+/* Grão de filme */
 .nl-root::after {
   content: '';
   position: absolute;
   inset: -4px;
   z-index: 3;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 0.045;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 256px 256px;
-  animation: nl-grain 0.12s steps(1) infinite;
+  animation: nl-grain 0.1s steps(1) infinite;
 }
 
+/* ── Painéis de fundo (desktop/tablet: split horizontal) ── */
 .nl-bg-left,
 .nl-bg-right {
   position: absolute;
@@ -589,32 +642,47 @@
   will-change: transform;
 }
 
-.nl-bg-left  {
+.nl-bg-left {
   left: 0;
+  right: auto;
   background-position: left center;
   transform-origin: left center;
-  animation: nl-ken-left 14s ease-in-out infinite;
+  animation: nl-ken-left 18s ease-in-out infinite;
 }
 
 .nl-bg-right {
   right: 0;
+  left: auto;
   background-position: right center;
   transform-origin: right center;
-  animation: nl-ken-right 14s ease-in-out infinite;
-  animation-delay: -7s;
+  animation: nl-ken-right 18s ease-in-out infinite;
+  animation-delay: -9s;
 }
 
+/* Overlay + vinheta respiratória */
 .nl-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: linear-gradient(
     to right,
-    rgba(8,12,16,0.48) 0%,
-    rgba(8,12,16,0.82) 26%,
-    rgba(8,12,16,0.82) 74%,
-    rgba(8,12,16,0.48) 100%
+    rgba(8,12,16,0.38) 0%,
+    rgba(8,12,16,0.80) 24%,
+    rgba(8,12,16,0.80) 76%,
+    rgba(8,12,16,0.38) 100%
   );
+  animation: nl-vignette 7s ease-in-out infinite;
+}
+
+/* Flash de ligação */
+.nl-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  animation: nl-flash 7s ease-in-out infinite;
+  animation-delay: -2s;
 }
 
 .nl-card {
@@ -781,14 +849,14 @@
 }
 .nl-legal-link:hover { opacity: 0.7; }
 
-/* ── Tablet largo (901px+): card ligeiramente maior ── */
+/* ── Desktop largo (>900px) ── */
 @media (min-width: 901px) {
   .nl-card  { max-width: 440px; }
   .nl-title { font-size: 2rem; }
   .nl-logo  { font-size: 3.4rem; }
 }
 
-/* ── Tablet portrait / landscape (600–900px): split mantido ── */
+/* ── Tablet (600–900px): split horizontal mantido ── */
 @media (max-width: 900px) and (min-width: 601px) {
   .nl-card  { max-width: 380px; padding: 0 20px; }
   .nl-title { font-size: 1.65rem; }
@@ -796,77 +864,109 @@
   .nl-btn   { font-size: 0.92rem; padding: 13px 18px; }
 }
 
-/* ── Mobile portrait (<600px): imagem inteira, ambas as pessoas ── */
-@keyframes nl-ken-mobile {
-  0%   { transform: scale(1.0) translate(0%, 0%); }
-  50%  { transform: scale(1.06) translate(0.5%, -0.5%); }
-  100% { transform: scale(1.0) translate(0%, 0%); }
-}
-
+/* ─────────────────────────────────────────────────────
+   MOBILE PORTRAIT (<600px)
+   Split VERTICAL: mulher em cima, homem em baixo
+   background-size:200% garante que cada pessoa
+   ocupa o seu painel sem ser cortada.
+───────────────────────────────────────────────────── */
 @media (max-width: 600px) and (orientation: portrait) {
-  /* Um único painel 100% a mostrar a imagem centrada — ambas as pessoas visíveis */
+
+  /* Painel superior — mulher (lado esquerdo da imagem) */
   .nl-bg-left {
     width: 100%;
-    height: 100%;
-    background-position: center center;
+    height: 52%;
+    top: 0;
+    left: 0;
+    right: auto;
+    background-size: 210%;
+    background-position: 8% 30%;
+    transform-origin: center top;
+    animation: nl-ken-mob 18s ease-in-out infinite;
+  }
+
+  /* Painel inferior — homem (lado direito da imagem) */
+  .nl-bg-right {
+    display: block;
+    width: 100%;
+    height: 48%;
+    top: 52%;
+    left: 0;
+    right: auto;
+    background-size: 210%;
+    background-position: 92% 60%;
+    transform-origin: center bottom;
+    animation: nl-ken-mob 18s ease-in-out infinite;
+    animation-delay: -9s;
+  }
+
+  /* Linha divisória subtil entre as duas pessoas */
+  .nl-overlay {
+    background:
+      linear-gradient(to bottom,
+        rgba(8,12,16,0.28) 0%,
+        rgba(8,12,16,0.70) 40%,
+        rgba(8,12,16,0.85) 50%,
+        rgba(8,12,16,0.70) 60%,
+        rgba(8,12,16,0.28) 100%
+      );
+    animation: nl-vignette 7s ease-in-out infinite;
+  }
+
+  .nl-card    { padding: 0 22px; max-width: 340px; }
+  .nl-logo    { font-size: 2.3rem; margin-bottom: 8px; }
+  .nl-title   { font-size: 1.45rem; }
+  .nl-sub     { font-size: 0.6rem; margin-bottom: 14px; }
+  .nl-online  { font-size: 0.78rem; padding: 6px 14px; margin-bottom: 16px; }
+  .nl-actions { gap: 9px; margin-bottom: 14px; }
+  .nl-btn     { font-size: 0.88rem; padding: 12px 15px; border-radius: 12px; }
+  .nl-footer  { font-size: 0.7rem; margin-bottom: 6px; }
+  .nl-legal   { font-size: 0.7rem; }
+}
+
+/* ── Mobile landscape: split horizontal, card compacto ── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .nl-bg-left {
+    width: 50%; height: 100%;
+    top: 0; left: 0; right: auto;
     background-size: cover;
-    transform-origin: center center;
-    animation: nl-ken-mobile 14s ease-in-out infinite;
+    background-position: left center;
+    transform-origin: left center;
+    animation: nl-ken-left 18s ease-in-out infinite;
   }
-  .nl-bg-right { display: none; }
-
-  /* Overlay uniforme mais denso para legibilidade */
+  .nl-bg-right {
+    display: block;
+    width: 50%; height: 100%;
+    top: 0; right: 0; left: auto;
+    background-size: cover;
+    background-position: right center;
+    transform-origin: right center;
+    animation: nl-ken-right 18s ease-in-out infinite;
+    animation-delay: -9s;
+  }
   .nl-overlay {
-    background: linear-gradient(
-      to bottom,
-      rgba(8,12,16,0.30) 0%,
-      rgba(8,12,16,0.72) 35%,
-      rgba(8,12,16,0.72) 65%,
-      rgba(8,12,16,0.30) 100%
+    background: linear-gradient(to right,
+      rgba(8,12,16,0.35) 0%,
+      rgba(8,12,16,0.78) 26%,
+      rgba(8,12,16,0.78) 74%,
+      rgba(8,12,16,0.35) 100%
     );
   }
-
-  .nl-card  { padding: 0 22px; max-width: 360px; }
-  .nl-logo  { font-size: 2.4rem; margin-bottom: 10px; }
-  .nl-title { font-size: 1.5rem; }
-  .nl-sub   { font-size: 0.62rem; }
-  .nl-online { font-size: 0.8rem; padding: 7px 14px; margin-bottom: 20px; }
-  .nl-btn   { font-size: 0.9rem; padding: 13px 16px; border-radius: 12px; }
-  .nl-actions { gap: 10px; margin-bottom: 16px; }
-  .nl-footer { font-size: 0.72rem; }
-  .nl-legal  { font-size: 0.72rem; }
+  .nl-card    { max-width: 300px; padding: 0 14px; }
+  .nl-logo    { font-size: 1.9rem; margin-bottom: 5px; }
+  .nl-title   { font-size: 1.15rem; margin-bottom: 3px; }
+  .nl-sub     { font-size: 0.56rem; margin-bottom: 8px; }
+  .nl-online  { font-size: 0.72rem; padding: 5px 11px; margin-bottom: 10px; }
+  .nl-actions { gap: 7px; margin-bottom: 8px; }
+  .nl-btn     { font-size: 0.82rem; padding: 10px 13px; border-radius: 10px; }
+  .nl-footer  { font-size: 0.65rem; margin-bottom: 5px; }
+  .nl-legal   { font-size: 0.65rem; }
 }
 
-/* ── Mobile landscape (<600px altura): split mantido, card compacto ── */
-@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
-  .nl-bg-left  { width: 50%; background-position: left center; }
-  .nl-bg-right { display: block; width: 50%; background-position: right center; }
-
-  .nl-overlay {
-    background: linear-gradient(
-      to right,
-      rgba(8,12,16,0.38) 0%,
-      rgba(8,12,16,0.78) 28%,
-      rgba(8,12,16,0.78) 72%,
-      rgba(8,12,16,0.38) 100%
-    );
-  }
-
-  .nl-card    { max-width: 320px; padding: 0 16px; gap: 0; }
-  .nl-logo    { font-size: 2rem; margin-bottom: 6px; }
-  .nl-title   { font-size: 1.2rem; margin-bottom: 4px; }
-  .nl-sub     { font-size: 0.58rem; margin-bottom: 10px; }
-  .nl-online  { font-size: 0.75rem; padding: 5px 12px; margin-bottom: 12px; }
-  .nl-actions { gap: 8px; margin-bottom: 10px; }
-  .nl-btn     { font-size: 0.85rem; padding: 11px 14px; border-radius: 10px; }
-  .nl-footer  { font-size: 0.68rem; margin-bottom: 6px; }
-  .nl-legal   { font-size: 0.68rem; }
-}
-
-/* ── Telemóveis muito pequenos (<375px) ── */
+/* ── Telemóveis muito pequenos (<375px portrait) ── */
 @media (max-width: 375px) and (orientation: portrait) {
-  .nl-logo    { font-size: 2.1rem; }
-  .nl-title   { font-size: 1.3rem; }
-  .nl-card    { padding: 0 16px; }
-  .nl-btn     { font-size: 0.85rem; padding: 12px 14px; }
+  .nl-logo  { font-size: 2rem; }
+  .nl-title { font-size: 1.25rem; }
+  .nl-card  { padding: 0 14px; }
+  .nl-btn   { font-size: 0.82rem; padding: 11px 13px; }
 }
