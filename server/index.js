@@ -47,11 +47,17 @@ startCleanupScheduler();
 // Trust Render/Netlify proxy
 app.set('trust proxy', 1);
 
+// Rate limiting — definido ANTES das rotas para funcionar corretamente
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const apiLimiter  = rateLimit({ windowMs: 60 * 1000, max: 150, standardHeaders: true, legacyHeaders: false });
+
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(compression());
 app.use(cors());
 app.use(express.json({ limit: '64kb' }));
+app.use('/api/auth', authLimiter);
+app.use(apiLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -169,11 +175,6 @@ app.get('/api/webrtc/ice', (req, res) => {
   return res.json({ iceServers });
 });
 
-// Rate limiting — auth mais restrito, API geral generosa
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
-const apiLimiter  = rateLimit({ windowMs: 60 * 1000,       max: 150, standardHeaders: true, legacyHeaders: false });
-app.use('/api/auth', authLimiter);
-app.use(apiLimiter);
 
 const geoCache = new Map();
 const GEO_CACHE_MAX = 2000;
