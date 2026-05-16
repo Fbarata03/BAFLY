@@ -527,6 +527,34 @@
   50%       { box-shadow: 0 0 18px #00ff88; }
 }
 
+/* Ken Burns — metade esquerda: zoom in + drift para a direita */
+@keyframes nl-ken-left {
+  0%   { transform: scale(1.0)  translate(0%, 0%); }
+  50%  { transform: scale(1.08) translate(1.5%, -0.5%); }
+  100% { transform: scale(1.0)  translate(0%, 0%); }
+}
+
+/* Ken Burns — metade direita: zoom in + drift para a esquerda */
+@keyframes nl-ken-right {
+  0%   { transform: scale(1.0)  translate(0%, 0%); }
+  50%  { transform: scale(1.08) translate(-1.5%, 0.5%); }
+  100% { transform: scale(1.0)  translate(0%, 0%); }
+}
+
+/* Grão de filme subtil */
+@keyframes nl-grain {
+  0%, 100% { transform: translate(0, 0); }
+  10%  { transform: translate(-1px, 1px); }
+  20%  { transform: translate(1px, -1px); }
+  30%  { transform: translate(-2px, 0px); }
+  40%  { transform: translate(2px, 1px); }
+  50%  { transform: translate(-1px, -2px); }
+  60%  { transform: translate(1px, 2px); }
+  70%  { transform: translate(-2px, 1px); }
+  80%  { transform: translate(2px, -1px); }
+  90%  { transform: translate(0px, 2px); }
+}
+
 .nl-root {
   position: fixed;
   inset: 0;
@@ -537,6 +565,19 @@
   background: #080c10;
 }
 
+/* Camada de grão de filme por cima de tudo */
+.nl-root::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: nl-grain 0.12s steps(1) infinite;
+}
+
 .nl-bg-left,
 .nl-bg-right {
   position: absolute;
@@ -545,10 +586,23 @@
   width: 50%;
   background-size: cover;
   background-repeat: no-repeat;
+  will-change: transform;
 }
 
-.nl-bg-left  { left: 0;  background-position: left center; }
-.nl-bg-right { right: 0; background-position: right center; }
+.nl-bg-left  {
+  left: 0;
+  background-position: left center;
+  transform-origin: left center;
+  animation: nl-ken-left 14s ease-in-out infinite;
+}
+
+.nl-bg-right {
+  right: 0;
+  background-position: right center;
+  transform-origin: right center;
+  animation: nl-ken-right 14s ease-in-out infinite;
+  animation-delay: -7s;
+}
 
 .nl-overlay {
   position: absolute;
