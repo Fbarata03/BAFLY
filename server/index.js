@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const compression = require('compression');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const db = require('./db');
 const checkBan = require('./middleware/checkBan');
@@ -18,20 +20,22 @@ const { startCleanupScheduler } = require('./cleanup');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  pingTimeout: 20000,
+  pingInterval: 25000,
+  upgradeTimeout: 10000,
+  transports: ['websocket', 'polling']
 });
 
-// Log OAuth config status on startup
+// Log de arranque
+console.log('[ENV] ADMIN_USERNAME:', process.env.ADMIN_USERNAME || 'admin (default)');
+console.log('[ENV] ADMIN_PASSWORD:', process.env.ADMIN_PASSWORD ? 'SET ✓' : 'MISSING ✗ — admin login desativado!');
 console.log('[ENV] GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING');
 console.log('[ENV] GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING');
 console.log('[ENV] GOOGLE_REDIRECT_URI:', process.env.GOOGLE_REDIRECT_URI || 'MISSING');
 console.log('[ENV] FACEBOOK_APP_ID:', process.env.FACEBOOK_APP_ID ? 'SET' : 'MISSING');
 console.log('[ENV] FACEBOOK_APP_SECRET:', process.env.FACEBOOK_APP_SECRET ? 'SET' : 'MISSING');
 console.log('[ENV] FACEBOOK_REDIRECT_URI:', process.env.FACEBOOK_REDIRECT_URI || 'MISSING');
-console.log('[ENV] OAUTH_DEV_MODE:', process.env.OAUTH_DEV_MODE);
 console.log('[ENV] CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
 
 // Initialize DB tables
@@ -44,8 +48,10 @@ startCleanupScheduler();
 app.set('trust proxy', 1);
 
 // Middleware
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(compression());
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '64kb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -150,6 +156,7 @@ const buildTurnIceServers = () => {
 };
 
 app.get('/api/webrtc/ice', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
@@ -162,14 +169,14 @@ app.get('/api/webrtc/ice', (req, res) => {
   return res.json({ iceServers });
 });
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// Rate limiting — auth mais restrito, API geral generosa
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+const apiLimiter  = rateLimit({ windowMs: 60 * 1000,       max: 150, standardHeaders: true, legacyHeaders: false });
+app.use('/api/auth', authLimiter);
+app.use(apiLimiter);
 
 const geoCache = new Map();
+const GEO_CACHE_MAX = 2000;
 
 const normalizeIp = (ip) => {
   if (!ip) return null;
@@ -220,6 +227,7 @@ const lookupGeoByIp = async (ip) => {
     ? { countryCode: String(data.country_code).toUpperCase(), countryName: data.country ? String(data.country) : null }
     : null;
 
+  if (geoCache.size >= GEO_CACHE_MAX) geoCache.delete(geoCache.keys().next().value);
   geoCache.set(normalized, { value, expiresAt: Date.now() + 6 * 60 * 60 * 1000 });
   return value;
 };
@@ -520,16 +528,15 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
-  // Keep-alive: pinga o próprio servidor a cada 10 min para o Render não adormecer
+  // Keep-alive: pinga a cada 4 min — bem abaixo do limite de 15 min do Render free
   const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   setInterval(async () => {
     try {
-      await fetch(`${selfUrl}/healthz`, { signal: AbortSignal.timeout(10000) });
-      console.log('[KEEP-ALIVE] ping ok');
+      await fetch(`${selfUrl}/healthz`, { signal: AbortSignal.timeout(8000) });
     } catch (e) {
       console.warn('[KEEP-ALIVE] ping falhou:', e.message);
     }
-  }, 10 * 60 * 1000); // cada 10 minutos
+  }, 4 * 60 * 1000);
 });
 
 module.exports = app;
