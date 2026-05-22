@@ -356,6 +356,9 @@ const Landing = () => {
 
   return (
     <div className="landing-page">
+      <div className="landing-orb landing-orb-1" aria-hidden="true" />
+      <div className="landing-orb landing-orb-2" aria-hidden="true" />
+      <div className="landing-orb landing-orb-3" aria-hidden="true" />
       <header className="landing-header">
         <div className="logo">
           <span className="logo-ba">BA</span>
