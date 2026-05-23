@@ -90,9 +90,13 @@ router.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Missing username or password' });
     const normalizedUsername = String(username).trim();
-    if (!normalizedUsername || normalizedUsername.length < 3) return res.status(400).json({ error: 'Username too short' });
+    if (normalizedUsername.length < 3) return res.status(400).json({ error: 'Username too short' });
+    if (normalizedUsername.length > 32) return res.status(400).json({ error: 'Username too long' });
+    if (!/^[a-zA-Z0-9_]+$/.test(normalizedUsername)) return res.status(400).json({ error: 'Username só pode ter letras, números e _' });
     if (normalizedUsername.toLowerCase() === 'admin') return res.status(400).json({ error: 'Username not allowed' });
-    if (String(password).length < 6) return res.status(400).json({ error: 'Password too short' });
+    const pwStr = String(password);
+    if (pwStr.length < 6) return res.status(400).json({ error: 'Password too short' });
+    if (pwStr.length > 128) return res.status(400).json({ error: 'Password too long' });
 
     const existing = await db.query('SELECT id FROM users WHERE username = $1 LIMIT 1', [normalizedUsername]);
     if (existing.rows.length) return res.status(409).json({ error: 'Username already taken' });

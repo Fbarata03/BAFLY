@@ -3,13 +3,33 @@ const router = express.Router();
 const db = require('../db');
 const requireAdmin = require('../middleware/requireAdmin');
 
+const VALID_REASONS = ['spam', 'harassment', 'inappropriate_content', 'underage', 'other'];
+
 // Qualquer utilizador pode submeter um report
 router.post('/', async (req, res) => {
   const { reporter_id, reported_id, reason, description, screenshot } = req.body;
+
+  if (!reported_id || !reason) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  if (!VALID_REASONS.includes(reason)) {
+    return res.status(400).json({ error: 'Invalid reason' });
+  }
+
+  const cleanDesc = description ? String(description).slice(0, 1000) : null;
+
+  // Só aceita data URLs de imagem, limita a 200 KB
+  const cleanScreenshot =
+    screenshot &&
+    typeof screenshot === 'string' &&
+    screenshot.startsWith('data:image/')
+      ? screenshot.slice(0, 204800)
+      : null;
+
   try {
     await db.query(
       'INSERT INTO reports (reporter_id, reported_id, reason, description, status, screenshot) VALUES ($1, $2, $3, $4, $5, $6)',
-      [reporter_id, reported_id, reason, description, 'pending', screenshot || null]
+      [reporter_id || null, reported_id, reason, cleanDesc, 'pending', cleanScreenshot]
     );
     res.status(201).json({ message: 'Report submitted' });
   } catch (error) {
@@ -52,8 +72,9 @@ router.post('/dismiss/:id', requireAdmin, async (req, res) => {
 
 router.post('/ban', requireAdmin, async (req, res) => {
   const { user_id, reason, expires_at } = req.body;
+  if (!user_id || !reason) return res.status(400).json({ error: 'Missing required fields' });
   try {
-    await db.query('INSERT INTO bans (user_id, reason, expires_at) VALUES ($1, $2, $3)', [user_id, reason, expires_at]);
+    await db.query('INSERT INTO bans (user_id, reason, expires_at) VALUES ($1, $2, $3)', [user_id, reason, expires_at || null]);
     await db.query('UPDATE reports SET status = $1 WHERE reported_id = $2', ['banned', user_id]);
     res.json({ message: 'User banned' });
   } catch (error) {

@@ -7,8 +7,14 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const db = require('./db');
 const checkBan = require('./middleware/checkBan');
+const requireAdmin = require('./middleware/requireAdmin');
 const crypto = require('crypto');
 require('dotenv').config();
+
+if (!process.env.JWT_SECRET) {
+  console.error('[FATAL] JWT_SECRET não está definido — o servidor recusa-se a arrancar. Define um segredo forte no .env');
+  process.exit(1);
+}
 
 const authRoutes = require('./routes/auth');
 const reportRoutes = require('./routes/reports');
@@ -17,10 +23,23 @@ const adminRoutes = require('./routes/admin');
 const initDB = require('./init_db');
 const { startCleanupScheduler } = require('./cleanup');
 
+const ALLOWED_ORIGINS = [
+  process.env.CLIENT_BASE_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://bafly.net',
+  'https://www.bafly.net',
+  'https://bafly-ej4m.onrender.com',
+].filter(Boolean);
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] },
+  cors: {
+    origin: ALLOWED_ORIGINS,
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
   pingTimeout: 20000,
   pingInterval: 25000,
   upgradeTimeout: 10000,
@@ -52,10 +71,34 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeade
 const apiLimiter  = rateLimit({ windowMs: 60 * 1000, max: 150, standardHeaders: true, legacyHeaders: false });
 
 // Middleware
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "wss:", "https:"],
+      mediaSrc: ["'self'", "blob:"],
+      workerSrc: ["'self'", "blob:"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
 app.use(compression());
-app.use(cors());
-app.use(express.json({ limit: '64kb' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS: origem não permitida'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+app.use(express.json({ limit: '32kb' }));
 app.use('/api/auth', authLimiter);
 app.use(apiLimiter);
 
@@ -128,7 +171,7 @@ const getDbConfigInfo = () => {
   };
 };
 
-app.get('/api/health/db/config', (req, res) => {
+app.get('/api/health/db/config', requireAdmin, (req, res) => {
   return res.json({
     ...getDbConfigInfo(),
     sslModeEnv: process.env.DB_SSL_MODE || null
@@ -237,9 +280,9 @@ app.get('/api/geo/me', async (req, res) => {
   try {
     const ip = getIpFromRequest(req);
     const geo = await lookupGeoByIp(ip);
-    return res.json({ ip, ...geo });
+    return res.json({ countryCode: geo?.countryCode || null, countryName: geo?.countryName || null });
   } catch (e) {
-    return res.json({ ip: null, countryCode: null, countryName: null });
+    return res.json({ countryCode: null, countryName: null });
   }
 });
 
@@ -256,7 +299,7 @@ const broadcastStatus = () => {
 
 const FLEX_MS = 3000;
 
-app.get('/api/health/matchmaking', (req, res) => {
+app.get('/api/health/matchmaking', requireAdmin, (req, res) => {
   const now = Date.now();
   const items = queue.map((u) => ({
     gender: u.gender,
@@ -334,6 +377,9 @@ setInterval(attemptMatchAll, 750);
 io.on('connection', async (socket) => {
   broadcastStatus();
 
+  // Rate limiting por socket para mensagens de chat
+  let lastMessageAt = 0;
+
   socket.on('get_online_count', () => {
     socket.emit('online_count', getOnlineCount());
     socket.emit('status', { onlineCount: getOnlineCount(), queueSize: getQueueSize() });
@@ -390,49 +436,59 @@ io.on('connection', async (socket) => {
     findMatch(newUser);
   });
 
+  const inRoom = (roomId) =>
+    typeof roomId === 'string' && roomId.length < 120 && socket.rooms.has(roomId);
+
   socket.on('offer', (data) => {
-    const { roomId, sdp } = data;
+    const { roomId, sdp } = data || {};
+    if (!inRoom(roomId) || (typeof sdp !== 'string' && typeof sdp !== 'object')) return;
     socket.to(roomId).emit('offer', { sdp });
   });
 
   socket.on('answer', (data) => {
-    const { roomId, sdp } = data;
+    const { roomId, sdp } = data || {};
+    if (!inRoom(roomId) || (typeof sdp !== 'string' && typeof sdp !== 'object')) return;
     socket.to(roomId).emit('answer', { sdp });
   });
 
   socket.on('ice_candidate', (data) => {
-    const { roomId, candidate } = data;
+    const { roomId, candidate } = data || {};
+    if (!inRoom(roomId)) return;
     socket.to(roomId).emit('ice_candidate', { candidate });
   });
 
   socket.on('message', (data) => {
-    const { roomId, text } = data;
-    // Broadcast to room
-    socket.to(roomId).emit('message', { text });
-    
-    // Log to DB (optional based on requirements, but user asked for INSERT INTO messages)
-    db.query('INSERT INTO messages (room_id, text, sender_socket) VALUES ($1, $2, $3)', [roomId, text, socket.id]).catch(console.error);
+    const { roomId, text } = data || {};
+    if (!inRoom(roomId) || typeof text !== 'string') return;
+    const now = Date.now();
+    if (now - lastMessageAt < 400) return; // max ~2,5 msgs/s
+    lastMessageAt = now;
+    const safe = text.slice(0, 500).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    socket.to(roomId).emit('message', { text: safe });
+    db.query('INSERT INTO messages (room_id, text, sender_socket) VALUES ($1, $2, $3)', [roomId, safe, socket.id]).catch(console.error);
   });
 
   socket.on('camera_state', (data) => {
     const { roomId, enabled } = data || {};
+    if (!inRoom(roomId)) return;
     socket.to(roomId).emit('camera_state', { enabled: !!enabled });
   });
 
   socket.on('mic_state', (data) => {
     const { roomId, enabled } = data || {};
+    if (!inRoom(roomId)) return;
     socket.to(roomId).emit('mic_state', { enabled: !!enabled });
   });
 
   socket.on('request_ice_restart', (data) => {
     const { roomId } = data || {};
-    if (!roomId) return;
+    if (!inRoom(roomId)) return;
     socket.to(roomId).emit('request_ice_restart');
   });
 
   socket.on('force_relay', (data) => {
     const { roomId } = data || {};
-    if (!roomId) return;
+    if (!inRoom(roomId)) return;
     socket.to(roomId).emit('force_relay');
   });
 

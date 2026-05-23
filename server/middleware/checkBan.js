@@ -1,11 +1,21 @@
 const db = require('../db');
 
-module.exports = async function checkBan(socket) {
-  const ip = socket.handshake.address;
+const getSocketIp = (socket) => {
+  const xff = socket.handshake.headers?.['x-forwarded-for'];
+  if (xff) {
+    const first = String(xff).split(',')[0].trim();
+    if (first) return first;
+  }
+  const addr = socket.handshake.address || '';
+  if (addr.startsWith('::ffff:')) return addr.slice(7);
+  return addr;
+};
 
+module.exports = async function checkBan(socket) {
+  const ip = getSocketIp(socket);
   try {
     const result = await db.query(
-      'SELECT * FROM bans WHERE ip = $1 AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1',
+      'SELECT reason, expires_at FROM bans WHERE ip = $1 AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1',
       [ip]
     );
     if (result.rows.length > 0) {
