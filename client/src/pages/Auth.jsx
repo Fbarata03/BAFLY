@@ -107,8 +107,6 @@ const Auth = () => {
 
   return (
     <div className="auth-page">
-      <div className="auth-orb auth-orb-1" aria-hidden="true" />
-      <div className="auth-orb auth-orb-2" aria-hidden="true" />
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo" onClick={() => navigate('/')}>
