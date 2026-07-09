@@ -14,24 +14,59 @@ const base64UrlToBuffer = (s) => {
 const base64UrlToString = (s) => base64UrlToBuffer(s).toString('utf8');
 
 const getClientBaseUrl = () => process.env.CLIENT_BASE_URL || 'http://localhost:5173';
+const oauthStateStore = new Map();
+
+const pruneOAuthStateStore = () => {
+  const now = Date.now();
+  for (const [state, entry] of oauthStateStore.entries()) {
+    if (entry.expiresAt <= now) oauthStateStore.delete(state);
+  }
+};
 
 const createOAuthState = async (provider) => {
   const state = crypto.randomBytes(16).toString('hex');
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
-  await db.query('INSERT INTO oauth_states (state, provider, expires_at) VALUES ($1, $2, $3)', [state, provider, expiresAt]).catch(() => {});
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  oauthStateStore.set(state, { provider, expiresAt: Date.parse(expiresAt) });
+  pruneOAuthStateStore();
+  try {
+    await db.query('INSERT INTO oauth_states (state, provider, expires_at) VALUES ($1, $2, $3)', [state, provider, expiresAt]);
+  } catch (error) {
+    console.error('[OAUTH_STATE] failed to create state:', error.message);
+  }
   return state;
 };
 
 const consumeOAuthState = async (state, expectedProvider) => {
+  if (!state) return false;
+  pruneOAuthStateStore();
+  const cached = oauthStateStore.get(state);
+  if (cached) {
+    oauthStateStore.delete(state);
+    if (cached.provider !== expectedProvider) return false;
+    if (cached.expiresAt <= Date.now()) return false;
+    return true;
+  }
+
   try {
     const result = await db.query('SELECT provider, expires_at FROM oauth_states WHERE state = $1', [state]);
     await db.query('DELETE FROM oauth_states WHERE state = $1', [state]);
-    if (!result.rows.length) return false;
+    if (!result.rows.length) {
+      console.warn('[OAUTH_STATE] state not found:', state);
+      return false;
+    }
     const entry = result.rows[0];
-    if (entry.provider !== expectedProvider) return false;
-    if (new Date(entry.expires_at) < new Date()) return false;
+    if (entry.provider !== expectedProvider) {
+      console.warn('[OAUTH_STATE] provider mismatch:', { expectedProvider, actualProvider: entry.provider, state });
+      return false;
+    }
+    const expiresAt = entry.expires_at ? new Date(entry.expires_at) : null;
+    if (!expiresAt || expiresAt < new Date()) {
+      console.warn('[OAUTH_STATE] expired state:', { state, expiresAt });
+      return false;
+    }
     return true;
-  } catch {
+  } catch (error) {
+    console.error('[OAUTH_STATE] consume failed:', error.message);
     return false;
   }
 };
@@ -190,7 +225,9 @@ router.get('/google/callback', async (req, res) => {
     }
     const code = req.query.code;
     const state = req.query.state;
-    if (!code || !state || !(await consumeOAuthState(state, 'google'))) {
+    console.log('[GOOGLE_CALLBACK] received state:', Boolean(state), 'code:', Boolean(code));
+    const isValidState = await consumeOAuthState(state, 'google');
+    if (!code || !state || !isValidState) {
       return res.status(400).send('Invalid OAuth state');
     }
 
@@ -268,7 +305,9 @@ router.get('/facebook/callback', async (req, res) => {
     }
     const code = req.query.code;
     const state = req.query.state;
-    if (!code || !state || !(await consumeOAuthState(state, 'facebook'))) {
+    console.log('[FACEBOOK_CALLBACK] received state:', Boolean(state), 'code:', Boolean(code));
+    const isValidState = await consumeOAuthState(state, 'facebook');
+    if (!code || !state || !isValidState) {
       return res.status(400).send('Invalid OAuth state');
     }
 

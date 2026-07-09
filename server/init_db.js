@@ -2,8 +2,11 @@ const db = require('./db');
 
 const createTables = async () => {
   try {
-    console.log("Initializing MySQL tables...");
-    
+    const isPostgres = db.isPostgres();
+    console.log(isPostgres ? 'Initializing PostgreSQL tables...' : 'Initializing MySQL tables...');
+
+    const idColumn = isPostgres ? 'BIGSERIAL PRIMARY KEY' : 'INT AUTO_INCREMENT PRIMARY KEY';
+
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(255) PRIMARY KEY,
@@ -20,7 +23,11 @@ const createTables = async () => {
     } catch (e) {}
 
     try {
-      await db.query('ALTER TABLE users MODIFY username VARCHAR(255) NOT NULL');
+      if (isPostgres) {
+        await db.query('ALTER TABLE users ALTER COLUMN username SET NOT NULL');
+      } else {
+        await db.query('ALTER TABLE users MODIFY username VARCHAR(255) NOT NULL');
+      }
     } catch (e) {}
 
     try {
@@ -40,16 +47,16 @@ const createTables = async () => {
     } catch (e) {}
 
     try {
-      await db.query('CREATE UNIQUE INDEX users_provider_unique ON users (provider, provider_id)');
+      await db.query('CREATE UNIQUE INDEX IF NOT EXISTS users_provider_unique ON users (provider, provider_id)');
     } catch (e) {}
 
     try {
-      await db.query('ALTER TABLE reports ADD COLUMN screenshot MEDIUMTEXT NULL');
+      await db.query('ALTER TABLE reports ADD COLUMN screenshot TEXT NULL');
     } catch (e) {}
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS sessions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         room_id VARCHAR(255),
         user1_id VARCHAR(255),
         user2_id VARCHAR(255),
@@ -61,7 +68,7 @@ const createTables = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS messages (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         room_id VARCHAR(255),
         text TEXT,
         sender_socket VARCHAR(255),
@@ -71,7 +78,7 @@ const createTables = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS reports (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         reporter_id VARCHAR(255),
         reported_id VARCHAR(255),
         reason VARCHAR(255),
@@ -83,7 +90,7 @@ const createTables = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS bans (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         user_id VARCHAR(255),
         ip VARCHAR(255),
         reason TEXT,
@@ -94,7 +101,7 @@ const createTables = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS stats_daily (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         date DATE UNIQUE,
         total_sessions INT DEFAULT 0,
         avg_session_time INT DEFAULT 0
@@ -103,7 +110,7 @@ const createTables = async () => {
 
     await db.query(`
       CREATE TABLE IF NOT EXISTS online_now (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id ${idColumn},
         socket_id VARCHAR(255) UNIQUE,
         joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -113,17 +120,16 @@ const createTables = async () => {
       CREATE TABLE IF NOT EXISTS oauth_states (
         state VARCHAR(64) PRIMARY KEY,
         provider VARCHAR(32) NOT NULL,
-        expires_at DATETIME NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Limpar online_now ao arrancar (entradas antigas de sessões anteriores)
     await db.query('DELETE FROM online_now WHERE 1=1').catch(() => {});
 
-    console.log("MySQL tables initialized successfully!");
+    console.log(isPostgres ? 'PostgreSQL tables initialized successfully!' : 'MySQL tables initialized successfully!');
   } catch (err) {
-    console.error("Error initializing MySQL tables:", err);
+    console.error('Error initializing database tables:', err);
   }
 };
 

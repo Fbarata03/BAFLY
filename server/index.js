@@ -57,11 +57,31 @@ console.log('[ENV] FACEBOOK_APP_SECRET:', process.env.FACEBOOK_APP_SECRET ? 'SET
 console.log('[ENV] FACEBOOK_REDIRECT_URI:', process.env.FACEBOOK_REDIRECT_URI || 'MISSING');
 console.log('[ENV] CLIENT_BASE_URL:', process.env.CLIENT_BASE_URL);
 
-// Initialize DB tables
-initDB();
+const startServer = async () => {
+  try {
+    await initDB();
+  } catch (error) {
+    console.error('[DB] initialization failed:', error.message);
+  }
 
-// Limpeza automática diária
-startCleanupScheduler();
+  startCleanupScheduler();
+
+  const PORT = process.env.PORT || 3001;
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+
+    const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    setInterval(async () => {
+      try {
+        await fetch(`${selfUrl}/healthz`, { signal: AbortSignal.timeout(8000) });
+      } catch (e) {
+        console.warn('[KEEP-ALIVE] ping falhou:', e.message);
+      }
+    }, 4 * 60 * 1000);
+  });
+};
+
+startServer();
 
 // Trust Render/Netlify proxy
 app.set('trust proxy', 1);
@@ -579,21 +599,6 @@ io.on('connection', async (socket) => {
       broadcastStatus();
     }
   }
-});
-
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-
-  // Keep-alive: pinga a cada 4 min — bem abaixo do limite de 15 min do Render free
-  const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(async () => {
-    try {
-      await fetch(`${selfUrl}/healthz`, { signal: AbortSignal.timeout(8000) });
-    } catch (e) {
-      console.warn('[KEEP-ALIVE] ping falhou:', e.message);
-    }
-  }, 4 * 60 * 1000);
 });
 
 module.exports = app;

@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -16,6 +17,7 @@
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.20.0",
+    "pg": "^8.2.0",
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
