@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <script>
   var l = window.location;
-  l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + '/?p=' + encodeURIComponent(l.pathname + l.search) + l.hash);
+  // GitHub Pages serves this project site under /BAFLY/ — keep that prefix so the
+  // SPA (React Router basename="/BAFLY") can restore the original route.
+  l.replace(l.protocol + '//' + l.host + '/BAFLY/?p=' + encodeURIComponent(l.pathname + l.search) + l.hash);
 </script>
 </head>
 <body></body>

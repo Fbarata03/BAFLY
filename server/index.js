@@ -23,12 +23,21 @@ const adminRoutes = require('./routes/admin');
 const initDB = require('./init_db');
 const { startCleanupScheduler } = require('./cleanup');
 
+// CORS compara apenas esquema+host (sem path). CLIENT_BASE_URL pode incluir um
+// sub-caminho (ex.: GitHub Pages: https://fbarata03.github.io/BAFLY) — por isso
+// extraímos também a origem "nua" desse URL.
+const clientOrigin = (() => {
+  try { return new URL(process.env.CLIENT_BASE_URL).origin; } catch { return null; }
+})();
+
 const ALLOWED_ORIGINS = [
   process.env.CLIENT_BASE_URL,
+  clientOrigin,
   'http://localhost:5173',
   'http://localhost:3000',
   'https://bafly.net',
   'https://www.bafly.net',
+  'https://fbarata03.github.io',
   'https://bafly-ej4m.onrender.com',
 ].filter(Boolean);
 

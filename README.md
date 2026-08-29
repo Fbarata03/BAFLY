@@ -63,21 +63,25 @@ server/          — Backend Node.js
   init_db.js     — Inicialização das tabelas MySQL
 ```
 
-## Variáveis de Ambiente (Railway — servidor)
+## Variáveis de Ambiente (Render — servidor)
 
 ```
-DATABASE_URL        = URL completa do MySQL Railway
+DATABASE_URL        = URL completa da base de dados (Postgres ou MySQL)
 JWT_SECRET          = chave secreta para tokens JWT
 ADMIN_USERNAME      = Fbarata03
 ADMIN_PASSWORD      = (password do painel admin)
 GOOGLE_CLIENT_ID    = (OAuth Google)
 GOOGLE_CLIENT_SECRET= (OAuth Google)
-GOOGLE_REDIRECT_URI = https://bafly-server-production-49a3.up.railway.app/api/auth/google/callback
+GOOGLE_REDIRECT_URI = https://bafly-ej4m.onrender.com/api/auth/google/callback
 FACEBOOK_APP_ID     = (OAuth Facebook)
 FACEBOOK_APP_SECRET = (OAuth Facebook)
-FACEBOOK_REDIRECT_URI = https://bafly-server-production-49a3.up.railway.app/api/auth/facebook/callback
-CLIENT_BASE_URL     = https://bafly.net
+FACEBOOK_REDIRECT_URI = https://bafly-ej4m.onrender.com/api/auth/facebook/callback
+CLIENT_BASE_URL     = https://fbarata03.github.io/BAFLY
 ```
+
+> O frontend está publicado no GitHub Pages em `https://fbarata03.github.io/BAFLY/`.
+> `CLIENT_BASE_URL` **tem de incluir** o sub-caminho `/BAFLY` — é para aí que o
+> servidor redireciona depois do OAuth (`/BAFLY/auth?token=...`).
 
 ## Como correr localmente
 
