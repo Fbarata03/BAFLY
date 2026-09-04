@@ -1,12 +1,12 @@
 /* ── Desktop controls bar ── */
 .controls-bar {
-  height: 90px;
-  background: #0d1117;
+  height: 88px;
+  background: var(--bg-elev);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 14px;
+  border-top: 1px solid var(--border);
   padding: 0 20px;
 }
 
@@ -14,10 +14,10 @@
   width: auto;
   min-width: 50px;
   height: 50px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-  color: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,32 +40,31 @@
 }
 
 .ctrl-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
   transform: translateY(-2px);
 }
 
-.ctrl-btn.report:hover { color: #ffbb33; border-color: #ffbb33; }
-.ctrl-btn.stop:hover { background: #ff4444; border-color: #ff4444; color: #fff; }
+.ctrl-btn.report:hover { color: #ffbb33; border-color: rgba(255, 187, 51, 0.5); }
+.ctrl-btn.stop:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 
 .ctrl-btn.next-btn {
   width: auto;
   min-width: 140px;
-  background: #00aaff;
+  background: var(--text);
   border: none;
-  border-radius: 12px;
-  color: #fff;
+  border-radius: var(--radius);
+  color: #0a0a0b;
   font-size: 0.9rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   flex-direction: row;
   gap: 8px;
 }
 
 .ctrl-btn.next-btn:hover {
-  background: #0099ee;
-  box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(124, 92, 255, 0.28);
 }
 
 /* ── Mobile: WhatsApp pill ── */
@@ -127,9 +126,9 @@
   color: #000;
 }
 
-/* Blue = next */
+/* Accent = next */
 .pill-btn.blue .material-icons {
-  background: #00aaff;
+  background: var(--accent);
   color: #fff;
 }
 
@@ -158,9 +157,9 @@
   height: 17px;
   padding: 0 4px;
   border-radius: 999px;
-  background: #00ff88;
-  color: #000;
-  font-weight: 800;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
   font-size: 0.65rem;
   display: flex;
   align-items: center;

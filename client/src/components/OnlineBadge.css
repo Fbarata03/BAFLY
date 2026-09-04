@@ -1,37 +1,39 @@
 .online-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.9rem;
-  color: var(--text-gray);
-  border: 1px solid rgba(160, 160, 160, 0.3);
-  padding: 5px 15px;
-  border-radius: 0;
+  gap: 9px;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
-  background-color: var(--neon-green);
+  width: 7px;
+  height: 7px;
+  background-color: var(--accent);
   border-radius: 50%;
 }
 
 .pulse {
-  animation: pulse 2s infinite;
+  animation: pulse 2.4s infinite;
 }
 
 @keyframes pulse {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+    box-shadow: 0 0 0 0 var(--accent-ring);
   }
   70% {
     transform: scale(1);
-    box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
+    box-shadow: 0 0 0 8px rgba(124, 92, 255, 0);
   }
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+    box-shadow: 0 0 0 0 rgba(124, 92, 255, 0);
   }
 }

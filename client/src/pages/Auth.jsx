@@ -93,11 +93,11 @@ const Auth = () => {
   if (params.get('token')) {
     return (
       <div className="auth-page">
-        <div style={{ textAlign: 'center', color: '#00ff88' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '16px' }}>
-            <span style={{ fontWeight: 900 }}>BA</span><span style={{ color: '#fff', fontWeight: 900 }}>FLY</span>
+        <div style={{ textAlign: 'center', color: '#f4f4f5' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '16px', letterSpacing: '-0.05em' }}>
+            <span style={{ fontWeight: 800 }}>BA</span><span style={{ color: '#71717a', fontWeight: 800 }}>FLY</span>
           </div>
-          <div style={{ color: '#a0a0a0', fontSize: '0.95rem' }}>A entrar...</div>
+          <div style={{ color: '#a1a1aa', fontSize: '0.95rem' }}>A entrar...</div>
         </div>
       </div>
     );

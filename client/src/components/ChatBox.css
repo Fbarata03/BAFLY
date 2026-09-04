@@ -1,11 +1,11 @@
 .chat-sidebar {
   width: 320px;
   height: 100%;
-  background: #0d1117;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  color: #fff;
+  color: var(--text);
   transition: width 0.3s;
 }
 
@@ -21,7 +21,7 @@
     max-height: none;
     border-left: none;
     border-top: none;
-    background: #080c10;
+    background: var(--bg-elev);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7);
@@ -187,11 +187,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0, 255, 136, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00ff88;
+  color: var(--text-muted);
 }
 
 .chat-sidebar-info h3 {
@@ -253,15 +254,15 @@
 }
 
 .msg-bubble.me {
-  background: #00ff88;
-  color: #000;
+  background: var(--accent);
+  color: #fff;
   margin-left: auto;
   border-bottom-right-radius: 2px;
 }
 
 .msg-bubble.stranger {
-  background: rgba(255, 255, 255, 0.08);
-  color: #eee;
+  background: var(--surface-hover);
+  color: var(--text);
   margin-right: auto;
   border-bottom-left-radius: 2px;
 }
@@ -276,23 +277,25 @@
 
 .chat-input-area input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 12px 16px;
-  color: #fff;
+  color: var(--text);
   outline: none;
   font-size: 0.9rem;
+  transition: border-color 0.18s, box-shadow 0.18s;
 }
 
 .chat-input-area input:focus {
-  border-color: #00ff88;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .send-btn {
   background: transparent;
   border: none;
-  color: #00ff88;
+  color: var(--accent);
   cursor: pointer;
   display: flex;
   align-items: center;
