@@ -3,7 +3,7 @@
   "appName": "BAFLY",
   "webDir": "dist",
   "server": {
-    "url": "https://bafly.net",
+    "url": "https://bafly.online",
     "cleartext": false
   },
   "android": {

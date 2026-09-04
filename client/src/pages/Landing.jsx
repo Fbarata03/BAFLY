@@ -8,11 +8,9 @@ import './Landing.css';
 
 const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
 const API_URL =
-  window.location.hostname === "localhost"
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? ""
-    : window.location.hostname === "bafly.net" || window.location.hostname === "www.bafly.net" || window.location.hostname.endsWith(".netlify.app") || window.location.hostname.endsWith(".github.io")
-      ? PROD_BACKEND
-      : import.meta.env.VITE_API_URL || PROD_BACKEND;
+    : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
 const DEFAULT_COUNTRY_OPTIONS = [
   { value: 'Any', label: 'Qualquer', flag: null },

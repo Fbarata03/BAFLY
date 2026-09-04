@@ -35,6 +35,8 @@ const ALLOWED_ORIGINS = [
   clientOrigin,
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://bafly.online',
+  'https://www.bafly.online',
   'https://bafly.net',
   'https://www.bafly.net',
   'https://fbarata03.github.io',

@@ -3,11 +3,9 @@ import './Admin.css';
 
 const PROD_BACKEND = "https://bafly-ej4m.onrender.com";
 const API_URL =
-  window.location.hostname === "localhost"
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? ""
-    : window.location.hostname === "bafly.net" || window.location.hostname === "www.bafly.net" || window.location.hostname.endsWith(".netlify.app") || window.location.hostname.endsWith(".github.io")
-      ? PROD_BACKEND
-      : import.meta.env.VITE_API_URL || PROD_BACKEND;
+    : import.meta.env.VITE_API_URL || PROD_BACKEND;
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
 const fmtDuration = (s) => { if (!s || isNaN(s)) return '0:00'; const m = Math.floor(s / 60); return `${m}:${Math.floor(s % 60).toString().padStart(2, '0')}`; };

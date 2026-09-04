@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <script>
   var l = window.location;
-  // GitHub Pages serves this project site under /BAFLY/ — keep that prefix so the
-  // SPA (React Router basename="/BAFLY") can restore the original route.
-  l.replace(l.protocol + '//' + l.host + '/BAFLY/?p=' + encodeURIComponent(l.pathname + l.search) + l.hash);
+  // Custom domain (bafly.online) serves the SPA at the root. Preserve the
+  // requested route in ?p= so index.html can restore it via history.replaceState.
+  l.replace(l.protocol + '//' + l.host + '/?p=' + encodeURIComponent(l.pathname + l.search) + l.hash);
 </script>
 </head>
 <body></body>

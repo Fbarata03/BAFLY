@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bafly.net/sitemap.xml
+Sitemap: https://bafly.online/sitemap.xml

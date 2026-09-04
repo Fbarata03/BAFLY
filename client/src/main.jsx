@@ -11,7 +11,7 @@ if ('serviceWorker' in navigator) {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter basename="/BAFLY">
+  <BrowserRouter>
     <App />
   </BrowserRouter>,
 )

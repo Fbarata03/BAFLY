@@ -1,6 +1,6 @@
 # BAFLY — Chat de Vídeo com Estranhos
 
-Site em produção: **[bafly.net](https://bafly.net)**
+Site em produção: **[bafly.online](https://bafly.online)**
 
 Chat de vídeo em tempo real com estranhos de todo o mundo. Anónimo, sem registo obrigatório e completamente grátis.
 
@@ -76,12 +76,12 @@ GOOGLE_REDIRECT_URI = https://bafly-ej4m.onrender.com/api/auth/google/callback
 FACEBOOK_APP_ID     = (OAuth Facebook)
 FACEBOOK_APP_SECRET = (OAuth Facebook)
 FACEBOOK_REDIRECT_URI = https://bafly-ej4m.onrender.com/api/auth/facebook/callback
-CLIENT_BASE_URL     = https://fbarata03.github.io/BAFLY
+CLIENT_BASE_URL     = https://bafly.online
 ```
 
-> O frontend está publicado no GitHub Pages em `https://fbarata03.github.io/BAFLY/`.
-> `CLIENT_BASE_URL` **tem de incluir** o sub-caminho `/BAFLY` — é para aí que o
-> servidor redireciona depois do OAuth (`/BAFLY/auth?token=...`).
+> O frontend está publicado no GitHub Pages com o domínio personalizado `https://bafly.online/`.
+> `CLIENT_BASE_URL` é a raiz do domínio — é para aí que o servidor redireciona
+> depois do OAuth (`https://bafly.online/auth?token=...`).
 
 ## Como correr localmente
 
