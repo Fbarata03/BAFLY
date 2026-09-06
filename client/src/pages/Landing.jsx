@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../socket';
-import OnlineBadge from '../components/OnlineBadge';
 import BanScreen from '../components/BanScreen';
 import landingBg from '../assets/landing-cover.png';
 import './Landing.css';
@@ -352,8 +351,11 @@ const Landing = () => {
     );
   }
 
+  const liveCount = (100000 + onlineCount).toLocaleString('pt-PT');
+
   return (
     <div className="landing-page">
+      <div className="landing-glow" aria-hidden="true" />
       <header className="landing-header">
         <div className="logo">
           <span className="logo-ba">BA</span>
@@ -361,16 +363,16 @@ const Landing = () => {
         </div>
         {user ? (
           <div className="auth-link">
-            <span style={{marginRight: 10}}>Olá, {user.displayName || user.username}</span>
+            <span className="auth-hello">Olá, {user.displayName || user.username}</span>
             <button
-              onClick={() => { 
-                localStorage.removeItem('auth_token'); 
-                localStorage.removeItem('auth_user'); 
+              className="auth-signout"
+              onClick={() => {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_user');
                 setSimple(true);
                 setUser(null);
-                navigate('/'); 
+                navigate('/');
               }}
-              style={{background:'transparent', color:'var(--text-gray)', border:'1px solid rgba(255,255,255,0.25)', padding:'6px 10px', cursor:'pointer'}}
             >
               Sair
             </button>
@@ -381,11 +383,18 @@ const Landing = () => {
       </header>
 
       <main className="landing-main">
-        <AnimatedTagline lines={getTaglineLines(localCountryCode)} />
-        <OnlineBadge count={onlineCount} />
+        <div className="landing-hero">
+          <AnimatedTagline lines={getTaglineLines(localCountryCode)} />
+          <p className="catchline">{getCatchline(localCountryCode)}</p>
+        </div>
 
+        <div className="console">
+          <div className="console-status">
+            <span className="console-dot" />
+            {liveCount} online agora
+          </div>
 
-        <div className="filters-container">
+          <div className="console-filters">
           <div className="filter-group">
             <label>Género</label>
             <select value={gender} onChange={(e) => setGender(e.target.value)}>
@@ -447,13 +456,18 @@ const Landing = () => {
               )}
             </div>
           </div>
+          </div>
+
+          <button className="start-btn" onClick={handleStart}>
+            <span className="start-icon">▶</span> Começar agora
+          </button>
         </div>
-        <p className="catchline">{getCatchline(localCountryCode)}</p>
 
-        <button className="start-btn" onClick={handleStart}>
-          ▶ Start
-        </button>
-
+        <div className="features">
+          <span>Anónimo</span>
+          <span>Sem registo</span>
+          <span>Grátis</span>
+        </div>
       </main>
     </div>
   );

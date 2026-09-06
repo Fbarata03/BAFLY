@@ -1,6 +1,6 @@
 {
   "id": "net.bafly.app",
-  "name": "BAFLY — Chat de Vídeo com Estranhos",
+  "name": "BAFLY | Chat de Vídeo com Estranhos",
   "short_name": "BAFLY",
   "description": "Chat de vídeo ao vivo com estranhos. Filtra por país e género. Anónimo, sem registo e grátis.",
   "start_url": "/",
@@ -39,7 +39,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "BAFLY — Chat de Vídeo"
+      "label": "BAFLY Chat de Vídeo"
     }
   ]
 }
