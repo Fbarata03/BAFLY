@@ -511,14 +511,13 @@
 @media (min-width: 901px) {
   .start-btn { min-width: 320px; }
 }
-
 /* ══════════════════════════════════════════
    NOVA TELA DE LOGIN — classes nl-*
 ══════════════════════════════════════════ */
 
 @keyframes nl-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 var(--accent-ring); }
-  50%       { box-shadow: 0 0 0 5px rgba(124, 92, 255, 0); }
+  0%, 100% { box-shadow: 0 0 6px #00ff88; }
+  50%       { box-shadow: 0 0 20px #00ff88, 0 0 40px rgba(0,255,136,0.3); }
 }
 
 /* Ken Burns dramático — esquerda */
@@ -584,7 +583,21 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--bg);
+  background: #080c10;
+}
+
+
+/* Grão de filme */
+.nl-root::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: nl-grain 0.1s steps(1) infinite;
 }
 
 /* ── Painéis de fundo (desktop/tablet: split horizontal) ── */
@@ -604,7 +617,7 @@
   right: auto;
   background-position: left center;
   transform-origin: left center;
-  animation: nl-ken-left 40s ease-in-out infinite;
+  animation: nl-ken-left 18s ease-in-out infinite;
 }
 
 .nl-bg-right {
@@ -612,18 +625,34 @@
   left: auto;
   background-position: right center;
   transform-origin: right center;
-  animation: nl-ken-right 40s ease-in-out infinite;
-  animation-delay: -20s;
+  animation: nl-ken-right 18s ease-in-out infinite;
+  animation-delay: -9s;
 }
 
-/* Overlay */
+/* Overlay + vinheta respiratória */
 .nl-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    radial-gradient(120% 90% at 50% 40%, rgba(10, 10, 11, 0.35) 0%, rgba(10, 10, 11, 0.86) 60%, rgba(10, 10, 11, 0.96) 100%),
-    linear-gradient(to bottom, rgba(10, 10, 11, 0.5), rgba(10, 10, 11, 0.7));
+  background: linear-gradient(
+    to right,
+    rgba(8,12,16,0.38) 0%,
+    rgba(8,12,16,0.80) 24%,
+    rgba(8,12,16,0.80) 76%,
+    rgba(8,12,16,0.38) 100%
+  );
+  animation: nl-vignette 7s ease-in-out infinite;
+}
+
+/* Flash de ligação */
+.nl-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  animation: nl-flash 7s ease-in-out infinite;
+  animation-delay: -2s;
 }
 
 .nl-card {
@@ -639,30 +668,32 @@
 }
 
 .nl-logo {
-  font-size: 2.6rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -2px;
   line-height: 1;
   margin-bottom: 14px;
 }
 
-.nl-logo-ba { color: var(--text); }
+.nl-logo-ba {
+  color: #00ff88;
+  text-shadow: 0 0 22px rgba(0,255,136,0.45);
+}
 
-.nl-logo-fly { color: var(--text-dim); }
+.nl-logo-fly { color: #ffffff; }
 
 .nl-title {
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0 0 8px;
   line-height: 1.15;
-  letter-spacing: -0.03em;
 }
 
 .nl-sub {
   font-size: 0.68rem;
-  letter-spacing: 0.22em;
-  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.42);
   text-transform: uppercase;
   margin: 0 0 22px;
 }
@@ -671,22 +702,22 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 500;
+  background: rgba(0,255,136,0.07);
+  border: 1px solid rgba(0,255,136,0.22);
+  padding: 8px 18px;
+  border-radius: 100px;
+  color: #00ff88;
+  font-size: 0.85rem;
+  font-weight: 600;
   margin-bottom: 28px;
 }
 
 .nl-online-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--accent);
-  animation: nl-pulse 2.4s infinite;
+  background: #00ff88;
+  animation: nl-pulse 2s infinite;
   flex-shrink: 0;
 }
 
@@ -700,51 +731,50 @@
 
 .nl-btn {
   width: 100%;
-  padding: 14px 20px;
-  border-radius: var(--radius);
-  font-size: 0.95rem;
+  padding: 15px 20px;
+  border-radius: 14px;
+  font-size: 0.97rem;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  transition: transform 0.15s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
-  letter-spacing: -0.01em;
-  font-family: var(--font);
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+  letter-spacing: 0.2px;
+  font-family: 'Space Mono', monospace;
 }
 
-.nl-btn:active { transform: scale(0.985) !important; }
+.nl-btn:active { transform: scale(0.98) !important; }
 
 .nl-btn-fb {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
+  background: #1877F2;
+  color: #ffffff;
 }
 .nl-btn-fb:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+  background: #1565D8;
+  transform: translateY(-2px);
 }
 
 .nl-btn-google {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
+  background: #f0f2f5;
+  color: #3c4043;
 }
 .nl-btn-google:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
+  background: #e2e5e9;
+  transform: translateY(-2px);
 }
 
 .nl-btn-criar {
-  background: var(--text);
-  color: #0a0a0b;
+  background: transparent;
+  color: #00ff88;
+  border: 1.5px solid #00ff88;
+  box-shadow: 0 0 14px rgba(0,255,136,0.28);
 }
 .nl-btn-criar:hover {
-  background: #ffffff;
+  box-shadow: 0 0 26px rgba(0,255,136,0.55);
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(124, 92, 255, 0.25);
 }
 
 .nl-icon {
@@ -757,7 +787,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-dim);
+  color: rgba(255,255,255,0.38);
   font-size: 0.76rem;
   margin-bottom: 10px;
 }
@@ -766,29 +796,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  color: var(--text-muted);
-  font-size: 0.58rem;
-  font-weight: 700;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
   flex-shrink: 0;
 }
 
 .nl-legal {
   font-size: 0.78rem;
-  color: var(--text-dim);
+  color: rgba(255,255,255,0.28);
 }
 
 .nl-legal-link {
-  color: var(--text-muted);
+  color: #00ff88;
   cursor: pointer;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: opacity 0.2s;
 }
-.nl-legal-link:hover { color: var(--text); }
+.nl-legal-link:hover { opacity: 0.7; }
 
 /* ── Desktop largo (>900px) ── */
 @media (min-width: 901px) {
@@ -845,12 +874,13 @@
   .nl-overlay {
     background:
       linear-gradient(to bottom,
-        rgba(10,10,11,0.55) 0%,
-        rgba(10,10,11,0.80) 42%,
-        rgba(10,10,11,0.92) 50%,
-        rgba(10,10,11,0.80) 58%,
-        rgba(10,10,11,0.55) 100%
+        rgba(8,12,16,0.28) 0%,
+        rgba(8,12,16,0.70) 40%,
+        rgba(8,12,16,0.85) 50%,
+        rgba(8,12,16,0.70) 60%,
+        rgba(8,12,16,0.28) 100%
       );
+    animation: nl-vignette 7s ease-in-out infinite;
   }
 
   .nl-card    { padding: 0 22px; max-width: 340px; }
@@ -886,10 +916,10 @@
   }
   .nl-overlay {
     background: linear-gradient(to right,
-      rgba(10,10,11,0.55) 0%,
-      rgba(10,10,11,0.86) 26%,
-      rgba(10,10,11,0.86) 74%,
-      rgba(10,10,11,0.55) 100%
+      rgba(8,12,16,0.35) 0%,
+      rgba(8,12,16,0.78) 26%,
+      rgba(8,12,16,0.78) 74%,
+      rgba(8,12,16,0.35) 100%
     );
   }
   .nl-card    { max-width: 300px; padding: 0 14px; }
