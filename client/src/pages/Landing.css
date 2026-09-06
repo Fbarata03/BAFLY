@@ -40,23 +40,69 @@
   justify-content: center;
   padding: 20px;
   position: relative;
-  background-color: var(--bg-color);
+  background: radial-gradient(130% 90% at 50% 0%, #111116 0%, var(--bg) 58%);
   color: var(--text-white);
   text-align: center;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-/* Ambient glow behind the console */
+/* Ambient animated glow behind the console */
 .landing-glow {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(680px, 96vw);
-  height: min(560px, 80vh);
-  transform: translate(-50%, -50%);
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.13), rgba(0, 255, 136, 0.04) 45%, transparent 72%);
+}
+
+.landing-glow::before,
+.landing-glow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.landing-glow::before {
+  width: min(620px, 78vw);
+  height: min(620px, 78vw);
+  margin-left: min(-310px, -39vw);
+  top: 30%;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.34), transparent 66%);
+  animation: glow-drift-a 18s ease-in-out infinite alternate;
+}
+
+.landing-glow::after {
+  width: min(520px, 66vw);
+  height: min(520px, 66vw);
+  margin-left: min(-260px, -33vw);
+  top: 48%;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.26), transparent 66%);
+  animation: glow-drift-b 24s ease-in-out infinite alternate;
+}
+
+@keyframes glow-drift-a {
+  0%   { transform: translate(-9%, -7%) scale(1); }
+  50%  { transform: translate(6%, 3%) scale(1.12); }
+  100% { transform: translate(11%, 9%) scale(1.04); }
+}
+
+@keyframes glow-drift-b {
+  0%   { transform: translate(7%, 5%) scale(1.08); }
+  50%  { transform: translate(-4%, -2%) scale(0.96); }
+  100% { transform: translate(-10%, -8%) scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-glow::before,
+  .landing-glow::after { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .landing-glow::before,
+  .landing-glow::after { filter: blur(64px); }
 }
 
 .landing-header {
@@ -128,7 +174,7 @@
   align-items: center;
   gap: 30px;
   animation: fade-in-up 1s ease-out;
-  max-width: 480px;
+  max-width: 640px;
   width: 100%;
 }
 
@@ -137,21 +183,26 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  width: 100%;
 }
 
 .tagline {
-  font-size: clamp(2.2rem, 5.6vw, 3.4rem);
+  font-size: clamp(1.25rem, 5vw, 3.05rem);
   font-weight: 800;
   margin: 0;
-  line-height: 1.03;
+  line-height: 1.05;
   letter-spacing: -0.045em;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  max-width: 100%;
 }
 
-.tagline-line { display: block; }
+.tagline-line {
+  display: block;
+  white-space: nowrap;
+}
 
 .tagline-line .letter-span {
   background: linear-gradient(to bottom, #ffffff 20%, #a8a8a8);
@@ -185,12 +236,15 @@
 /* ── Matchmaking console ── */
 .console {
   width: 100%;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, #17171b, #0f0f12);
+  background: linear-gradient(180deg, rgba(23, 23, 27, 0.82), rgba(15, 15, 18, 0.82));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: var(--radius-lg);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -202,9 +256,9 @@
   gap: 8px;
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  background: rgba(0, 255, 136, 0.08);
-  border: 1px solid rgba(0, 255, 136, 0.22);
-  color: #7bffc4;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -433,7 +487,7 @@
   .logo { font-size: 1.45rem; flex-shrink: 0; }
 
   .auth-link { font-size: 0.8rem; gap: 8px; }
-  .auth-hello { max-width: 120px; }
+  .auth-hello { display: none; }
 
   .landing-main {
     padding-top: 84px;
@@ -441,7 +495,6 @@
   }
 
   .tagline {
-    font-size: clamp(1.7rem, 7.5vw, 2.3rem);
     line-height: 1.08;
     gap: 1px;
   }
@@ -478,8 +531,6 @@
     padding-top: 76px;
     gap: 18px;
   }
-
-  .tagline { font-size: clamp(1.5rem, 8.5vw, 1.95rem); }
 
   .filter-group select,
   .country-trigger {

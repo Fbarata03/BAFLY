@@ -27,6 +27,12 @@ const DEFAULT_COUNTRY_OPTIONS = [
 
 const flagUrl = (code) => `https://flagcdn.com/24x18/${String(code).toLowerCase()}.png`;
 
+const GENDER_OPTIONS = [
+  { value: 'Any', label: 'Qualquer' },
+  { value: 'Male', label: 'Masculino' },
+  { value: 'Female', label: 'Feminino' },
+];
+
 const CATCHLINES = {
   pt: 'O próximo clique pode mudar tudo.',
   es: 'El próximo clic puede cambiarlo todo.',
@@ -169,7 +175,9 @@ const Landing = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
   const countryRef = useRef(null);
+  const genderRef = useRef(null);
   const countryTouchedRef = useRef(false);
   const [simple, setSimple] = useState(!localStorage.getItem('auth_token') && !localStorage.getItem('auth_user'));
   const [banInfo, setBanInfo] = useState(null);
@@ -254,8 +262,8 @@ const Landing = () => {
 
   useEffect(() => {
     const onDown = (e) => {
-      if (!countryRef.current) return;
-      if (!countryRef.current.contains(e.target)) setIsCountryOpen(false);
+      if (countryRef.current && !countryRef.current.contains(e.target)) setIsCountryOpen(false);
+      if (genderRef.current && !genderRef.current.contains(e.target)) setIsGenderOpen(false);
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
@@ -397,11 +405,36 @@ const Landing = () => {
           <div className="console-filters">
           <div className="filter-group">
             <label>Género</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)}>
-              <option value="Any">Qualquer</option>
-              <option value="Male">Masculino</option>
-              <option value="Female">Feminino</option>
-            </select>
+            <div className="country-select" ref={genderRef}>
+              <button
+                type="button"
+                className="country-trigger"
+                onClick={() => { setIsGenderOpen((v) => !v); setIsCountryOpen(false); }}
+                aria-haspopup="listbox"
+                aria-expanded={isGenderOpen}
+              >
+                <span className="country-label">
+                  {(GENDER_OPTIONS.find((o) => o.value === gender) || GENDER_OPTIONS[0]).label}
+                </span>
+                <span className="country-caret">▾</span>
+              </button>
+              {isGenderOpen && (
+                <div className="country-menu" role="listbox">
+                  {GENDER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={opt.value === gender ? 'country-option active' : 'country-option'}
+                      onClick={() => { setGender(opt.value); setIsGenderOpen(false); }}
+                      role="option"
+                      aria-selected={opt.value === gender}
+                    >
+                      <span className="country-label">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="filter-group">
@@ -410,7 +443,7 @@ const Landing = () => {
               <button
                 type="button"
                 className="country-trigger"
-                onClick={() => setIsCountryOpen((v) => !v)}
+                onClick={() => { setIsCountryOpen((v) => !v); setIsGenderOpen(false); }}
                 aria-haspopup="listbox"
                 aria-expanded={isCountryOpen}
               >
